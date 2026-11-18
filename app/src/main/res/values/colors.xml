@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#2B6CB0</color>
+    <color name="primary_dark">#1A3A6B</color>
+    <color name="primary_light">#D6E6F7</color>
+    <color name="accent">#E07B39</color>
+    <color name="background">#F5F7FA</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="text_primary">#1F2329</color>
+    <color name="text_secondary">#7A828E</color>
+    <color name="divider">#E4E8EE</color>
+    <color name="badge_kept_bg">#E8F5E9</color>
+    <color name="badge_kept_text">#2E7D32</color>
+    <color name="badge_filtered_bg">#FDECEA</color>
+    <color name="badge_filtered_text">#C0392B</color>
+    <color name="score_high">#C0392B</color>
+    <color name="score_mid">#E07B39</color>
+    <color name="score_low">#2E7D32</color>
+</resources>

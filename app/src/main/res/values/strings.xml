@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">毛豆通知</string>
+    <string name="notification_service_label">毛豆通知 · 通知监听</string>
+
+    <!-- 底部导航 -->
+    <string name="tab_history">历史</string>
+    <string name="tab_rules">规则</string>
+    <string name="tab_stats">分析</string>
+    <string name="tab_settings">设置</string>
+
+    <!-- 通知渠道 -->
+    <string name="channel_restored">恢复的通知</string>
+    <string name="channel_keep_alive">监听保活</string>
+    <string name="channel_snoozed">推迟提醒</string>
+    <string name="channel_call_ui">来电式强提醒</string>
+
+    <!-- 通用 -->
+    <string name="action_cancel">取消</string>
+    <string name="action_save">保存</string>
+    <string name="action_delete">删除</string>
+    <string name="action_ok">确定</string>
+    <string name="empty_history">还没有通知记录\n授权通知使用权后，通知会自动出现在这里</string>
+    <string name="empty_rules">还没有规则，点右下角 + 创建</string>
+
+    <!-- 历史 -->
+    <string name="history_title">通知历史</string>
+    <string name="search_hint">搜索 App、标题或正文</string>
+    <string name="filter_all">全部</string>
+    <string name="filter_kept">已保留</string>
+    <string name="filter_filtered">已过滤</string>
+    <string name="badge_kept">保留</string>
+    <string name="badge_filtered">已过滤</string>
+    <string name="restore_notification">恢复通知</string>
+    <string name="restored_toast">已恢复到通知栏</string>
+    <string name="delete_record">删除记录</string>
+    <string name="deleted_toast">已删除，可在设置中找回</string>
+
+    <!-- 详情 -->
+    <string name="detail_title">通知详情</string>
+    <string name="detail_source">来源应用</string>
+    <string name="detail_time">到达时间</string>
+    <string name="detail_result">处理结果</string>
+    <string name="detail_ai_score">骚扰概率</string>
+    <string name="detail_content">通知内容</string>
+    <string name="mark_spam">标记为骚扰</string>
+    <string name="mark_normal">标记为正常</string>
+    <string name="marked_toast">已标注，模型已更新</string>
+    <string name="recalled_notice">该消息已被发送方撤回/删除，此处为送达时的内容快照。</string>
+
+    <!-- 规则 -->
+    <string name="rules_title">过滤规则</string>
+    <string name="rule_edit_title">编辑规则</string>
+    <string name="rule_new_title">新建规则</string>
+    <string name="rule_name_hint">规则名称</string>
+    <string name="rule_apps">生效应用（不选=全部应用）</string>
+    <string name="rule_select_apps">选择应用</string>
+    <string name="rule_all_apps_hint">全部应用</string>
+    <string name="rule_keyword_include">包含任意关键词（逗号分隔）</string>
+    <string name="rule_keyword_exclude">排除关键词（逗号分隔）</string>
+    <string name="rule_time">生效时段（24小时制，如 18:00-09:00）</string>
+    <string name="rule_time_start">开始</string>
+    <string name="rule_time_end">结束</string>
+    <string name="rule_charging_only">仅充电时生效</string>
+    <string name="rule_screen_off_only">仅锁屏时生效</string>
+    <string name="rule_action">执行动作</string>
+    <string name="rule_action_param">动作参数（可选）</string>
+    <string name="rule_enabled">启用规则</string>
+    <string name="rule_test">测试规则</string>
+    <string name="rule_test_hint">输入测试文本</string>
+    <string name="rule_test_result">匹配结果</string>
+    <string name="rule_matched">命中</string>
+    <string name="rule_not_matched">未命中</string>
+    <string name="rule_delete_confirm">确定删除这条规则？</string>
+    <string name="rule_saved">规则已保存</string>
+
+    <!-- 动作名称 -->
+    <string name="act_dismiss">消除（不显示）</string>
+    <string name="act_mute">静音（无声无震动）</string>
+    <string name="act_snooze">推迟提醒</string>
+    <string name="act_replace">替换内容</string>
+    <string name="act_ringtone">更改铃声</string>
+    <string name="act_tts">语音朗读</string>
+    <string name="act_call_ui">来电式强提醒</string>
+    <string name="act_tap_button">点击按钮</string>
+    <string name="act_open">打开通知</string>
+    <string name="act_webhook">Webhook 转发</string>
+    <string name="act_keep">仅保留（不处理）</string>
+
+    <!-- 分析 -->
+    <string name="stats_title">通知分析</string>
+    <string name="stats_recent_7">近 7 天</string>
+    <string name="stats_recent_30">近 30 天</string>
+    <string name="stats_total">通知总数</string>
+    <string name="stats_filtered">已过滤</string>
+    <string name="stats_top_apps">打扰排行</string>
+    <string name="stats_daily">每日趋势</string>
+    <string name="stats_no_data">暂无数据</string>
+
+    <!-- 设置 -->
+    <string name="settings_title">设置</string>
+    <string name="settings_permission">通知使用权</string>
+    <string name="settings_permission_status_on">已授权</string>
+    <string name="settings_permission_status_off">未授权 · 点此开启</string>
+    <string name="settings_permission_desc">毛豆通知需要读取通知栏通知才能工作。请在系统设置中开启「通知使用权」。</string>
+    <string name="settings_post_notification">通知发送权限</string>
+    <string name="settings_ai">离线 AI 骚扰过滤</string>
+    <string name="settings_ai_desc">在手机本地为每条通知打分，不上传任何内容</string>
+    <string name="settings_ai_threshold">过滤阈值</string>
+    <string name="settings_ai_threshold_value">骚扰概率 ≥ %1$d%% 自动过滤</string>
+    <string name="settings_enhance">通知增强</string>
+    <string name="settings_undo">5 秒撤销按钮</string>
+    <string name="settings_smart_mute">智能静音</string>
+    <string name="settings_code_copy">验证码提取</string>
+    <string name="settings_privacy">隐私与安全</string>
+    <string name="settings_encryption">本地加密存储（AES-GCM / Keystore）</string>
+    <string name="settings_encryption_on">已启用</string>
+    <string name="settings_export_csv">导出通知历史 (CSV)</string>
+    <string name="settings_clear_data">清空全部数据</string>
+    <string name="settings_clear_confirm">确定清空全部通知历史和 AI 标注？此操作不可恢复。</string>
+    <string name="settings_cleared">已清空</string>
+    <string name="settings_about">关于</string>
+    <string name="settings_version">版本 1.0.0 · 数据仅存本机</string>
+    <string name="export_done">已导出到文档目录</string>
+    <string name="export_failed">导出失败</string>
+
+    <!-- 权限引导 -->
+    <string name="guide_title">开启通知使用权</string>
+    <string name="guide_desc">毛豆通知需要「通知使用权」才能保存和管理通知。这是系统级权限，所有处理都在你的手机本地完成。</string>
+    <string name="guide_button">前往系统设置开启</string>
+    <string name="guide_later">稍后再说</string>
+
+    <!-- 5 秒撤销 -->
+    <string name="undo_notification_title">通知已消除</string>
+    <string name="undo_notification_text">点击恢复这条通知</string>
+    <string name="undo_action">恢复</string>
+</resources>

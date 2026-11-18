@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 铃铛主体 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,30c-9.4,0 -17,7.6 -17,17v12l-6,9c-1.2,1.8 0.1,4 2.2,4h41.6c2.1,0 3.4,-2.2 2.2,-4l-6,-9V47c0,-9.4 -7.6,-17 -17,-17z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M47,76c0,3.9 3.1,7 7,7s7,-3.1 7,-7H47z" />
+    <!-- 斜杠：滤掉打扰 -->
+    <path
+        android:fillColor="#2B6CB0"
+        android:pathData="M30,84 L84,26 L88,30 L34,88 Z" />
+</vector>

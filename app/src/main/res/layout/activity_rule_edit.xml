@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/background">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize"
+        android:background="@color/surface" app:titleCentered="true"
+        />
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="16dp">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/rule_name_hint" android:textSize="12sp" android:textColor="@color/text_secondary" />
+            <EditText android:id="@+id/et_name" android:layout_width="match_parent" android:layout_height="44dp"
+                android:background="@drawable/bg_search" android:paddingStart="12dp" android:paddingEnd="12dp"
+                android:singleLine="true" android:textColor="@color/text_primary" android:textSize="14sp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/rule_apps" android:textSize="12sp" android:textColor="@color/text_secondary" android:layout_marginTop="14dp" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+                <TextView android:id="@+id/tv_apps" android:layout_width="0dp" android:layout_height="44dp" android:layout_weight="1"
+                    android:background="@drawable/bg_search" android:gravity="center_vertical" android:paddingStart="12dp"
+                    android:textColor="@color/text_secondary" android:textSize="13sp" android:hint="@string/rule_select_apps" />
+                <Button android:id="@+id/btn_apps" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp" android:text="@string/rule_select_apps" android:textSize="12sp" />
+            </LinearLayout>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/rule_keyword_include" android:textSize="12sp" android:textColor="@color/text_secondary" android:layout_marginTop="14dp" />
+            <EditText android:id="@+id/et_include" android:layout_width="match_parent" android:layout_height="44dp"
+                android:background="@drawable/bg_search" android:paddingStart="12dp" android:paddingEnd="12dp"
+                android:singleLine="true" android:textColor="@color/text_primary" android:textSize="14sp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/rule_keyword_exclude" android:textSize="12sp" android:textColor="@color/text_secondary" android:layout_marginTop="14dp" />
+            <EditText android:id="@+id/et_exclude" android:layout_width="match_parent" android:layout_height="44dp"
+                android:background="@drawable/bg_search" android:paddingStart="12dp" android:paddingEnd="12dp"
+                android:singleLine="true" android:textColor="@color/text_primary" android:textSize="14sp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/rule_time" android:textSize="12sp" android:textColor="@color/text_secondary" android:layout_marginTop="14dp" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+                <EditText android:id="@+id/et_time_start" android:layout_width="0dp" android:layout_height="44dp" android:layout_weight="1"
+                    android:background="@drawable/bg_search" android:paddingStart="12dp" android:hint="18:00"
+                    android:singleLine="true" android:textColor="@color/text_primary" android:textSize="14sp" android:inputType="time" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:layout_marginStart="6dp" android:layout_marginEnd="6dp" />
+                <EditText android:id="@+id/et_time_end" android:layout_width="0dp" android:layout_height="44dp" android:layout_weight="1"
+                    android:background="@drawable/bg_search" android:paddingStart="12dp" android:hint="09:00"
+                    android:singleLine="true" android:textColor="@color/text_primary" android:textSize="14sp" android:inputType="time" />
+            </LinearLayout>
+
+            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cb_charging" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/rule_charging_only" android:layout_marginTop="10dp" />
+            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cb_screenoff" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/rule_screen_off_only" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/rule_action" android:textSize="12sp" android:textColor="@color/text_secondary" android:layout_marginTop="14dp" />
+            <Spinner android:id="@+id/spinner_action" android:layout_width="match_parent" android:layout_height="44dp"
+                android:background="@drawable/bg_search" android:spinnerMode="dialog" />
+
+            <TextView android:id="@+id/tv_param_label" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/rule_action_param" android:textSize="12sp" android:textColor="@color/text_secondary" android:layout_marginTop="14dp" />
+            <EditText android:id="@+id/et_param" android:layout_width="match_parent" android:layout_height="44dp"
+                android:background="@drawable/bg_search" android:paddingStart="12dp" android:paddingEnd="12dp"
+                android:singleLine="true" android:textColor="@color/text_primary" android:textSize="14sp" />
+
+            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cb_enabled" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/rule_enabled" android:checked="true" android:layout_marginTop="10dp" />
+
+            <Button android:id="@+id/btn_save" android:layout_width="match_parent" android:layout_height="48dp"
+                android:layout_marginTop="16dp" android:text="@string/action_save" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
