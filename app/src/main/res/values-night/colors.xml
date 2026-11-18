@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 桌面小部件深色（FR-E4） -->
+    <color name="widget_bg">#1E242C</color>
+    <color name="widget_text">#E8EAED</color>
+    <color name="widget_subtext">#9AA0A6</color>
+    <color name="widget_accent">#8AB4F8</color>
+</resources>

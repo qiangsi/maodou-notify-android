@@ -13,6 +13,7 @@ import com.maodou.notify.data.NotificationEntity
 import com.maodou.notify.data.Result
 import com.maodou.notify.databinding.ActivityNotificationDetailBinding
 import com.maodou.notify.listener.NotificationBridge
+import com.maodou.notify.util.ThemeHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -27,6 +28,7 @@ class NotificationDetailActivity : AppCompatActivity() {
     private lateinit var app: MaodouApp
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(ThemeHelper.themeStyle((application as MaodouApp).prefs.themeColor))
         super.onCreate(savedInstanceState)
         binding = ActivityNotificationDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)

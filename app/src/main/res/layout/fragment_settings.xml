@@ -18,6 +18,27 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- 外观（FR-E6 多主题） -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_appearance" android:textSize="12sp" android:textStyle="bold" android:textColor="@color/primary" android:layout_marginTop="20dp" android:layout_marginBottom="6dp" />
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            app:cardCornerRadius="10dp" app:cardElevation="1dp" app:cardBackgroundColor="@color/surface">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="14dp">
+                <TextView android:id="@+id/tv_theme_mode" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="13sp" android:textColor="@color/text_primary" />
+                <TextView android:id="@+id/tv_theme_color" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textSize="13sp" android:textColor="@color/text_primary" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 暂停过滤（FR-E4 小部件快捷入口） -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp"
+            app:cardCornerRadius="10dp" app:cardElevation="1dp" app:cardBackgroundColor="@color/surface">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="14dp">
+                <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switch_filter_paused" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_filter_paused" />
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_filter_paused_desc" android:textSize="12sp" android:textColor="@color/text_secondary" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- 离线 AI -->
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_ai" android:textSize="12sp" android:textStyle="bold" android:textColor="@color/primary" android:layout_marginTop="20dp" android:layout_marginBottom="6dp" />
         <com.google.android.material.card.MaterialCardView

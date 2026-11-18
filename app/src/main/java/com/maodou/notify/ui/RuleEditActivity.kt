@@ -14,6 +14,7 @@ import com.maodou.notify.R
 import com.maodou.notify.data.Actions
 import com.maodou.notify.data.FilterRule
 import com.maodou.notify.databinding.ActivityRuleEditBinding
+import com.maodou.notify.util.ThemeHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -28,6 +29,7 @@ class RuleEditActivity : AppCompatActivity() {
     private var pkgLabels = mutableMapOf<String, String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(ThemeHelper.themeStyle((application as MaodouApp).prefs.themeColor))
         super.onCreate(savedInstanceState)
         binding = ActivityRuleEditBinding.inflate(layoutInflater)
         setContentView(binding.root)

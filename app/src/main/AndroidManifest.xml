@@ -83,6 +83,21 @@
             android:name=".listener.CodeCopyReceiver"
             android:exported="false" />
 
+        <!-- FR-E4 桌面小部件 -->
+        <receiver
+            android:name=".listener.MaodouWidgetProvider"
+            android:exported="false"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.maodou.notify.widget.TOGGLE" />
+                <action android:name="com.maodou.notify.widget.REFRESH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/appwidget_info" />
+        </receiver>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

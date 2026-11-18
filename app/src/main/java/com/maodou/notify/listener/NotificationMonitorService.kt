@@ -108,11 +108,16 @@ class NotificationMonitorService : NotificationListenerService() {
             val dao = app.database.notificationDao()
             val id = dao.insert(entity)
             var saved = entity.copy(id = id)
+            // FR-E4：通知落库后主动刷新桌面小部件统计
+            try { MaodouWidgetProvider.refreshAll(applicationContext) } catch (e: Exception) { }
 
             // FR-H1 滚动清理：最旧优先
             try { performRollingCleanup(app, dao.countAll()) } catch (e: Exception) { }
 
             if (excludedNoFilter) return@launch // 排除档位2：记录不过滤
+
+            // FR-E4 全局暂停过滤：仅记录，不执行任何规则/AI/静音
+            if (app.prefs.filterPaused) return@launch
 
             // 2) 智能静音（FR-E2）
             if (ActionExecutor.shouldSmartMute(applicationContext, pkg, app.prefs)) {

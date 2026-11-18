@@ -81,6 +81,14 @@ interface NotificationDao {
     @Query("SELECT COUNT(*) FROM notifications WHERE marked IS NOT NULL")
     suspend fun countLearned(): Int
 
+    /** FR-E4 桌面小部件：指定起点之后的总数 */
+    @Query("SELECT COUNT(*) FROM notifications WHERE timestamp >= :since")
+    suspend fun countSince(since: Long): Int
+
+    /** FR-E4 桌面小部件：指定起点之后被过滤（非 kept）的数量 */
+    @Query("SELECT COUNT(*) FROM notifications WHERE timestamp >= :since AND result != 'kept'")
+    suspend fun countFilteredSince(since: Long): Int
+
     /** 重置模型：清除所有打分与标注，保留历史内容 */
     @Query("UPDATE notifications SET score = 0, marked = NULL")
     suspend fun resetAllScores()

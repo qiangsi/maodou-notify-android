@@ -1,10 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <!-- ============ 基础主题（蓝，默认）深色 ============ -->
     <style name="Theme.MaodouNotify" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/primary_light</item>
         <item name="colorOnPrimary">@color/primary_dark</item>
         <item name="colorSecondary">@color/accent</item>
         <item name="android:colorBackground">#12161C</item>
         <item name="colorSurface">#1E242C</item>
+    </style>
+
+    <!-- ============ FR-E6 多配色深色：青绿 ============ -->
+    <style name="Theme.MaodouNotify.Teal" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/theme_teal_light</item>
+        <item name="colorOnPrimary">@color/theme_teal_dark</item>
+        <item name="colorPrimaryContainer">@color/theme_teal_dark</item>
+        <item name="colorOnPrimaryContainer">@color/theme_teal_light</item>
+        <item name="colorSecondary">@color/theme_teal_accent</item>
+        <item name="android:colorBackground">#121C1B</item>
+        <item name="colorSurface">#1E2A29</item>
+    </style>
+
+    <!-- ============ FR-E6 多配色深色：紫色 ============ -->
+    <style name="Theme.MaodouNotify.Purple" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/theme_purple_light</item>
+        <item name="colorOnPrimary">@color/theme_purple_dark</item>
+        <item name="colorPrimaryContainer">@color/theme_purple_dark</item>
+        <item name="colorOnPrimaryContainer">@color/theme_purple_light</item>
+        <item name="colorSecondary">@color/theme_purple_accent</item>
+        <item name="android:colorBackground">#17131F</item>
+        <item name="colorSurface">#251F31</item>
+    </style>
+
+    <!-- ============ FR-E6 多配色深色：珊瑚橙 ============ -->
+    <style name="Theme.MaodouNotify.Coral" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/theme_coral_light</item>
+        <item name="colorOnPrimary">@color/theme_coral_dark</item>
+        <item name="colorPrimaryContainer">@color/theme_coral_dark</item>
+        <item name="colorOnPrimaryContainer">@color/theme_coral_light</item>
+        <item name="colorSecondary">@color/theme_coral_accent</item>
+        <item name="android:colorBackground">#1F1714</item>
+        <item name="colorSurface">#2C221E</item>
     </style>
 </resources>

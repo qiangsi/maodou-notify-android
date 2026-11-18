@@ -16,4 +16,26 @@
     <color name="score_high">#C0392B</color>
     <color name="score_mid">#E07B39</color>
     <color name="score_low">#2E7D32</color>
+
+    <!-- FR-E6 多配色：青绿 Teal -->
+    <color name="theme_teal_primary">#00897B</color>
+    <color name="theme_teal_dark">#00594F</color>
+    <color name="theme_teal_light">#B2DFDB</color>
+    <color name="theme_teal_accent">#FF7043</color>
+    <!-- FR-E6 多配色：紫 Purple -->
+    <color name="theme_purple_primary">#7B4FC7</color>
+    <color name="theme_purple_dark">#4E2D8A</color>
+    <color name="theme_purple_light">#D6C4F5</color>
+    <color name="theme_purple_accent">#F06292</color>
+    <!-- FR-E6 多配色：珊瑚橙 Coral -->
+    <color name="theme_coral_primary">#E0643A</color>
+    <color name="theme_coral_dark">#A63F1E</color>
+    <color name="theme_coral_light">#F8C9B6</color>
+    <color name="theme_coral_accent">#2B6CB0</color>
+
+    <!-- 桌面小部件（FR-E4）：RemoteViews 只能用固定色，取深浅两档 -->
+    <color name="widget_bg">#FFFFFF</color>
+    <color name="widget_text">#1F2329</color>
+    <color name="widget_subtext">#7A828E</color>
+    <color name="widget_accent">#2B6CB0</color>
 </resources>

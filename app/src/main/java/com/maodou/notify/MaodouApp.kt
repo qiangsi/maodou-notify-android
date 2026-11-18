@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.os.Build
 import com.maodou.notify.data.AppDatabase
 import com.maodou.notify.util.Prefs
+import com.maodou.notify.util.ThemeHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -22,6 +23,8 @@ class MaodouApp : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        // FR-E6：深浅模式全局应用（配色由各 Activity 在 onCreate 前 setTheme）
+        ThemeHelper.applyNightMode(prefs.themeMode)
         createChannels()
     }
 

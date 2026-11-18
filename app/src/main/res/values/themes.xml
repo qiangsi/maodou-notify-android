@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ============ 基础主题（蓝，默认） ============ -->
     <style name="Theme.MaodouNotify" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@color/surface</item>
@@ -11,6 +13,33 @@
         <item name="android:textColorPrimary">@color/text_primary</item>
         <item name="android:textColorSecondary">@color/text_secondary</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+    </style>
+
+    <!-- ============ FR-E6 多配色：青绿 ============ -->
+    <style name="Theme.MaodouNotify.Teal">
+        <item name="colorPrimary">@color/theme_teal_primary</item>
+        <item name="colorOnPrimary">@color/surface</item>
+        <item name="colorPrimaryContainer">@color/theme_teal_light</item>
+        <item name="colorOnPrimaryContainer">@color/theme_teal_dark</item>
+        <item name="colorSecondary">@color/theme_teal_accent</item>
+    </style>
+
+    <!-- ============ FR-E6 多配色：紫色 ============ -->
+    <style name="Theme.MaodouNotify.Purple">
+        <item name="colorPrimary">@color/theme_purple_primary</item>
+        <item name="colorOnPrimary">@color/surface</item>
+        <item name="colorPrimaryContainer">@color/theme_purple_light</item>
+        <item name="colorOnPrimaryContainer">@color/theme_purple_dark</item>
+        <item name="colorSecondary">@color/theme_purple_accent</item>
+    </style>
+
+    <!-- ============ FR-E6 多配色： coral 珊瑚橙 ============ -->
+    <style name="Theme.MaodouNotify.Coral">
+        <item name="colorPrimary">@color/theme_coral_primary</item>
+        <item name="colorOnPrimary">@color/surface</item>
+        <item name="colorPrimaryContainer">@color/theme_coral_light</item>
+        <item name="colorOnPrimaryContainer">@color/theme_coral_dark</item>
+        <item name="colorSecondary">@color/theme_coral_accent</item>
     </style>
 
     <style name="Theme.MaodouNotify.Dialog" parent="Theme.Material3.Light.Dialog.Alert" />

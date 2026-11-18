@@ -108,6 +108,23 @@ class Prefs(context: Context) {
         get() = sp.getLong(KEY_PENDING_MISSED, 0L)
         set(value) = sp.edit().putLong(KEY_PENDING_MISSED, value).apply()
 
+    // —— FR-E6 多主题 ——
+    /** 深浅模式：0=跟随系统 1=浅色 2=深色 */
+    var themeMode: Int
+        get() = sp.getInt(KEY_THEME_MODE, 0)
+        set(value) = sp.edit().putInt(KEY_THEME_MODE, value).apply()
+
+    /** 配色索引：0=蓝 1=青绿 2=紫 3=珊瑚 */
+    var themeColor: Int
+        get() = sp.getInt(KEY_THEME_COLOR, 0)
+        set(value) = sp.edit().putInt(KEY_THEME_COLOR, value).apply()
+
+    // —— FR-E4 桌面小部件：全局暂停过滤 ——
+    /** 暂停期间只记录不执行任何过滤/动作 */
+    var filterPaused: Boolean
+        get() = sp.getBoolean(KEY_FILTER_PAUSED, false)
+        set(value) = sp.edit().putBoolean(KEY_FILTER_PAUSED, value).apply()
+
     companion object {
         private const val KEY_AI_ENABLED = "ai_enabled"
         private const val KEY_AI_THRESHOLD = "ai_threshold"
@@ -130,5 +147,8 @@ class Prefs(context: Context) {
         private const val KEY_FIRST_RUN = "first_run_at"
         private const val KEY_LISTENER_DISCONNECTED = "listener_disconnected_at"
         private const val KEY_PENDING_MISSED = "pending_missed_since"
+        private const val KEY_THEME_MODE = "theme_mode"
+        private const val KEY_THEME_COLOR = "theme_color"
+        private const val KEY_FILTER_PAUSED = "filter_paused"
     }
 }

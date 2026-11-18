@@ -19,7 +19,9 @@ import com.maodou.notify.R
 import com.maodou.notify.data.CryptoHelper
 import com.maodou.notify.databinding.FragmentSettingsBinding
 import com.maodou.notify.engine.ActionExecutor
+import com.maodou.notify.listener.MaodouWidgetProvider
 import com.maodou.notify.util.AppLockHelper
+import com.maodou.notify.util.ThemeHelper
 import com.maodou.notify.util.isListenerEnabled
 import com.maodou.notify.util.openListenerSettings
 import kotlinx.coroutines.Dispatchers
@@ -57,6 +59,43 @@ class SettingsFragment : Fragment() {
         }
         refreshPermission()
         binding.cardPermission.setOnClickListener { openListenerSettings(requireContext()) }
+
+        // 外观：深浅模式 + 配色（FR-E6），切换即时生效并记忆
+        fun refreshThemeLabels() {
+            binding.tvThemeMode.text = getString(R.string.theme_mode_label, ThemeHelper.MODE_NAMES[prefs.themeMode.coerceIn(0..2)])
+            binding.tvThemeColor.text = getString(R.string.theme_color_label, ThemeHelper.COLOR_NAMES[prefs.themeColor.coerceIn(0..3)])
+        }
+        refreshThemeLabels()
+        binding.tvThemeMode.setOnClickListener {
+            AlertDialog.Builder(requireContext())
+                .setTitle(R.string.settings_appearance)
+                .setSingleChoiceItems(ThemeHelper.MODE_NAMES, prefs.themeMode.coerceIn(0..2)) { d, which ->
+                    prefs.themeMode = which
+                    ThemeHelper.applyNightMode(which)
+                    d.dismiss()
+                    requireActivity().recreate()
+                }
+                .setNegativeButton(R.string.action_cancel, null)
+                .show()
+        }
+        binding.tvThemeColor.setOnClickListener {
+            AlertDialog.Builder(requireContext())
+                .setTitle(getString(R.string.theme_color_label, ThemeHelper.COLOR_NAMES[prefs.themeColor.coerceIn(0..3)]))
+                .setSingleChoiceItems(ThemeHelper.COLOR_NAMES, prefs.themeColor.coerceIn(0..3)) { d, which ->
+                    prefs.themeColor = which
+                    d.dismiss()
+                    requireActivity().recreate()
+                }
+                .setNegativeButton(R.string.action_cancel, null)
+                .show()
+        }
+
+        // 暂停过滤（FR-E4）：仅记录不过滤
+        binding.switchFilterPaused.isChecked = prefs.filterPaused
+        binding.switchFilterPaused.setOnCheckedChangeListener { _, c ->
+            prefs.filterPaused = c
+            MaodouWidgetProvider.refreshAll(requireContext())
+        }
 
         // AI 开关与阈值
         binding.switchAi.isChecked = prefs.aiEnabled

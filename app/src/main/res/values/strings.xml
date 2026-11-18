@@ -120,7 +120,7 @@
     <string name="settings_clear_confirm">确定清空全部通知历史和 AI 标注？此操作不可恢复。</string>
     <string name="settings_cleared">已清空</string>
     <string name="settings_about">关于</string>
-    <string name="settings_version">版本 1.1.0 · 数据仅存本机</string>
+    <string name="settings_version">版本 1.2.0 · 数据仅存本机</string>
     <string name="export_done">已导出到文档目录</string>
     <string name="export_failed">导出失败</string>
 
@@ -218,4 +218,18 @@
     <string name="rule_export_done">规则已导出</string>
     <string name="rule_import_done">已导入 %1$d 条规则（跳过 %2$d 条重名）</string>
     <string name="rule_import_failed">导入失败：文件格式不正确</string>
+
+    <!-- FR-E6 多主题 -->
+    <string name="settings_appearance">外观</string>
+    <string name="theme_mode_label">深浅模式：%1$s</string>
+    <string name="theme_color_label">配色主题：%1$s</string>
+    <!-- FR-E4 桌面小部件 / 暂停过滤 -->
+    <string name="settings_filter_paused">暂停过滤</string>
+    <string name="settings_filter_paused_desc">开启后仅记录通知，不执行任何规则与 AI 过滤，桌面小部件可快捷切换</string>
+    <string name="appwidget_description">毛豆通知 · 今日统计与过滤开关</string>
+    <string name="widget_label_kept">保留</string>
+    <string name="widget_label_filtered">已过滤</string>
+    <string name="widget_paused">已暂停</string>
+    <string name="widget_active">过滤中</string>
+    <string name="widget_today">今日通知</string>
 </resources>

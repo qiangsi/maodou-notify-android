@@ -13,6 +13,7 @@ import com.maodou.notify.R
 import com.maodou.notify.MaodouApp
 import com.maodou.notify.databinding.ActivityMainBinding
 import com.maodou.notify.util.AppLockHelper
+import com.maodou.notify.util.ThemeHelper
 import com.maodou.notify.util.hasPostNotificationPermission
 import com.maodou.notify.util.isListenerEnabled
 import com.maodou.notify.util.openListenerSettings
@@ -22,6 +23,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(ThemeHelper.themeStyle((application as MaodouApp).prefs.themeColor))
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
