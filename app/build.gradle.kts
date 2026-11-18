@@ -12,8 +12,8 @@ android {
         applicationId = "com.maodou.notify"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -46,6 +46,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.6")
     implementation("androidx.preference:preference-ktx:1.2.1")
+    implementation("androidx.biometric:biometric-ktx:1.2.0-alpha05")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
     val roomVersion = "2.6.1"

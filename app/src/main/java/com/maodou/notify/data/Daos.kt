@@ -44,6 +44,9 @@ interface NotificationDao {
     @Query("SELECT packageName, COUNT(*) AS cnt FROM notifications WHERE timestamp >= :since GROUP BY packageName ORDER BY cnt DESC")
     suspend fun packageRank(since: Long): List<PackageCount>
 
+    @Query("SELECT packageName, COUNT(*) AS cnt FROM notifications WHERE timestamp >= :since AND result = :result GROUP BY packageName ORDER BY cnt DESC")
+    suspend fun packageRankByResult(since: Long, result: String): List<PackageCount>
+
     @Query("SELECT timestamp, result FROM notifications WHERE timestamp >= :since")
     suspend fun dailyRaw(since: Long): List<DailyRaw>
 
@@ -53,12 +56,37 @@ interface NotificationDao {
     @Query("DELETE FROM notifications WHERE timestamp < :before")
     suspend fun deleteBefore(before: Long)
 
+    /** 滚动清理：保留最新 keep 条，删除其余最旧记录（FR-H1 最旧优先） */
+    @Query("DELETE FROM notifications WHERE id IN (SELECT id FROM notifications ORDER BY timestamp ASC LIMIT :count)")
+    suspend fun deleteOldest(count: Int)
+
     @Query("SELECT * FROM notifications WHERE result = :r AND marked IS NULL ORDER BY timestamp DESC LIMIT :limit")
     suspend fun unscored(r: String, limit: Int): List<NotificationEntity>
 
     @Query("SELECT * FROM notifications ORDER BY timestamp DESC LIMIT :limit")
     suspend fun recent(limit: Int): List<NotificationEntity>
+
+    /** 按时间范围+App 筛选导出（FR-H6） */
+    @Query("SELECT * FROM notifications WHERE timestamp >= :from AND timestamp <= :to AND (:pkg = '' OR packageName = :pkg) ORDER BY timestamp DESC")
+    suspend fun queryForExport(from: Long, to: Long, pkg: String): List<NotificationEntity>
+
+    /** 按日聚合统计（FR-S2）：返回每天总数与过滤数 */
+    @Query("SELECT timestamp, result FROM notifications WHERE timestamp >= :since ORDER BY timestamp ASC")
+    suspend fun statsForDaily(since: Long): List<DailyRaw>
+
+    /** 指定 App 在近 N 条的过滤/保留分布（FR-S1 分口径） */
+    @Query("SELECT result, COUNT(*) AS cnt FROM notifications WHERE timestamp >= :since AND (:pkg = '' OR packageName = :pkg) GROUP BY result")
+    suspend fun resultBreakdown(since: Long, pkg: String): List<ResultCount>
+
+    @Query("SELECT COUNT(*) FROM notifications WHERE marked IS NOT NULL")
+    suspend fun countLearned(): Int
+
+    /** 重置模型：清除所有打分与标注，保留历史内容 */
+    @Query("UPDATE notifications SET score = 0, marked = NULL")
+    suspend fun resetAllScores()
 }
+
+data class ResultCount(val result: String, val cnt: Int)
 
 data class PackageCount(val packageName: String, val cnt: Int)
 data class DailyRaw(val timestamp: Long, val result: String)

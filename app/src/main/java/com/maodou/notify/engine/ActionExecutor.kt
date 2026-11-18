@@ -42,8 +42,15 @@ object ActionExecutor {
     ): ActionOutcome = when (action) {
         Actions.KEEP -> ActionOutcome(false, Result.KEPT, "规则保留")
         Actions.DISMISS -> {
-            NotificationBridge.cancel(entity.packageName, entity.id.toString())
-            ActionOutcome(true, Result.RULE, "已消除")
+            // 修复 P0：cancelNotification 需要系统 StatusBarNotification.key，
+            // 不能用数据库 id。老数据无 sysKey 时诚实降级，不伪装成功。
+            val key = entity.sysKey
+            if (key.isNullOrEmpty()) {
+                ActionOutcome(false, Result.KEPT, "无法消除：缺少系统通知标识（旧版本记录）")
+            } else {
+                NotificationBridge.cancel(key)
+                ActionOutcome(true, Result.RULE, "已消除")
+            }
         }
         Actions.MUTE -> {
             muteBriefly(context, param)
@@ -53,8 +60,9 @@ object ActionExecutor {
             snooze(context, entity, param, decryptedTitle, decryptedText)
             ActionOutcome(true, Result.RULE, "已推迟")
         }
-        Actions.REPLACE -> ActionOutcome(true, Result.RULE, "已替换内容")
-        Actions.RINGTONE -> ActionOutcome(true, Result.RULE, "已更改铃声")
+        // 系统不允许第三方 App 改写他人通知内容/提示音，诚实降级不伪装成功（FR-R3）
+        Actions.REPLACE -> ActionOutcome(false, Result.KEPT, "替换内容受系统限制未执行；可在历史中查看原文")
+        Actions.RINGTONE -> ActionOutcome(false, Result.KEPT, "更改铃声受系统限制未执行")
         Actions.TTS -> {
             speak(context, decryptedTitle, decryptedText)
             ActionOutcome(true, Result.RULE, "已朗读")
@@ -106,20 +114,33 @@ object ActionExecutor {
         app.appScope.launch(Dispatchers.Main) { /* 保持引用 */ }
     }
 
-    /** 智能静音：短时间内同 App 高频通知时临时静音 */
+    /** 智能静音：短时间内同 App 高频通知时临时静音（阈值/窗口/时长均可配 FR-E2） */
     private val recentTimes = mutableMapOf<String, MutableList<Long>>()
 
     fun shouldSmartMute(context: Context, pkg: String, prefs: Prefs): Boolean {
         if (!prefs.smartMuteEnabled) return false
         val now = System.currentTimeMillis()
+        val windowMs = prefs.muteWindowSec.coerceIn(5, 3600) * 1000L
+        val threshold = prefs.muteThreshold.coerceIn(2, 100)
         val list = recentTimes.getOrPut(pkg) { mutableListOf() }
         list.add(now)
-        list.removeAll { now - it > 60_000 }
-        if (list.size >= 5) {
-            muteBriefly(context, "30")
+        list.removeAll { now - it > windowMs }
+        // 防止 map 无限增长：清理超过 1 小时无活动的包
+        if (recentTimes.size > 200) {
+            recentTimes.entries.removeAll { it.value.isEmpty() || now - (it.value.maxOrNull() ?: 0L) > 3_600_000 }
+        }
+        if (list.size >= threshold) {
+            muteBriefly(context, prefs.muteDurationSec.coerceIn(5, 600).toString())
             list.clear()
             return true
         }
         return false
+    }
+
+    /** 用户手动提前解除全局静音（FR-E2） */
+    fun unmute(context: Context) {
+        val am = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
+        @Suppress("DEPRECATION")
+        am.ringerMode = AudioManager.RINGER_MODE_NORMAL
     }
 }

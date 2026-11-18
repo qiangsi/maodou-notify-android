@@ -47,6 +47,12 @@ class RuleEditActivity : AppCompatActivity() {
             }
         } else {
             binding.toolbar.title = getString(R.string.rule_new_title)
+            // 从分析页直达创建：预填来源 App
+            intent.getStringExtra("pkg")?.let { pkg ->
+                selectedPkgs.add(pkg)
+                pkgLabels[pkg] = pkg
+                updateAppsText()
+            }
         }
 
         binding.btnSave.setOnClickListener { save() }
@@ -69,9 +75,17 @@ class RuleEditActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 selectedAction = keys[position]
-                binding.etParam.visibility = if (selectedAction in setOf(
-                        Actions.SNOOZE, Actions.REPLACE, Actions.RINGTONE, Actions.MUTE, Actions.WEBHOOK
-                    )) View.VISIBLE else View.GONE
+                val needsParam = selectedAction in setOf(
+                    Actions.SNOOZE, Actions.REPLACE, Actions.RINGTONE, Actions.MUTE, Actions.WEBHOOK
+                )
+                binding.etParam.visibility = if (needsParam) View.VISIBLE else View.GONE
+                // Webhook 隐私明示（FR-R3-10）：明确告知数据将离开设备
+                if (selectedAction == Actions.WEBHOOK) {
+                    binding.tvWebhookNotice.visibility = View.VISIBLE
+                    binding.etParam.hint = "https://example.com/hook"
+                } else {
+                    binding.tvWebhookNotice.visibility = View.GONE
+                }
             }
         }
     }
@@ -115,6 +129,12 @@ class RuleEditActivity : AppCompatActivity() {
         binding.etExclude.setText(rule.keywordExclude)
         binding.etTimeStart.setText(rule.timeStartMin.takeIf { it >= 0 }?.let { fmtMin(it) } ?: "")
         binding.etTimeEnd.setText(rule.timeEndMin.takeIf { it >= 0 }?.let { fmtMin(it) } ?: "")
+        // 恢复星期选择
+        val days = rule.daysOfWeek.split(",").filter { it.isNotBlank() }.toSet()
+        for (i in 0 until binding.chipDays.childCount) {
+            val chip = binding.chipDays.getChildAt(i) as com.google.android.material.chip.Chip
+            chip.isChecked = chip.tag?.toString() in days
+        }
         binding.cbCharging.isChecked = rule.chargingOnly
         binding.cbScreenoff.isChecked = rule.screenOffOnly
         binding.etParam.setText(rule.actionParam)
@@ -139,6 +159,35 @@ class RuleEditActivity : AppCompatActivity() {
             Toast.makeText(this, "请输入规则名称", Toast.LENGTH_SHORT).show()
             return
         }
+        val startMin = parseMin(binding.etTimeStart.text.toString())
+        val endMin = parseMin(binding.etTimeEnd.text.toString())
+        // 边界校验：填写了时间但格式非法
+        if ((binding.etTimeStart.text.toString().isNotBlank() && startMin < 0) ||
+            (binding.etTimeEnd.text.toString().isNotBlank() && endMin < 0)) {
+            Toast.makeText(this, "时间格式应为 HH:mm（如 18:00）", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if ((binding.etTimeStart.text.toString().isBlank()) != (binding.etTimeEnd.text.toString().isBlank())) {
+            Toast.makeText(this, "开始与结束时间需同时填写", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val param = binding.etParam.text.toString().trim()
+        // Webhook URL 校验（FR-R3-10 边界）
+        if (selectedAction == Actions.WEBHOOK && param.isNotBlank()) {
+            if (!param.startsWith("http://", true) && !param.startsWith("https://", true)) {
+                Toast.makeText(this, "Webhook 地址需以 http:// 或 https:// 开头", Toast.LENGTH_SHORT).show()
+                return
+            }
+        }
+        // 推迟分钟数校验
+        if (selectedAction == Actions.SNOOZE && param.isNotBlank()) {
+            val m = param.toIntOrNull()
+            if (m == null || m !in 1..1440) {
+                Toast.makeText(this, "推迟分钟数需为 1~1440", Toast.LENGTH_SHORT).show()
+                return
+            }
+        }
+
         val rule = FilterRule(
             id = editing?.id ?: 0,
             name = name,
@@ -146,12 +195,16 @@ class RuleEditActivity : AppCompatActivity() {
             packageNames = selectedPkgs.joinToString(","),
             keywordInclude = binding.etInclude.text.toString().trim(),
             keywordExclude = binding.etExclude.text.toString().trim(),
-            timeStartMin = parseMin(binding.etTimeStart.text.toString()),
-            timeEndMin = parseMin(binding.etTimeEnd.text.toString()),
+            timeStartMin = startMin,
+            timeEndMin = endMin,
+            daysOfWeek = (0 until binding.chipDays.childCount).mapNotNull { i ->
+                val chip = binding.chipDays.getChildAt(i) as com.google.android.material.chip.Chip
+                if (chip.isChecked) chip.tag?.toString() else null
+            }.joinToString(","),
             chargingOnly = binding.cbCharging.isChecked,
             screenOffOnly = binding.cbScreenoff.isChecked,
             action = selectedAction,
-            actionParam = binding.etParam.text.toString().trim(),
+            actionParam = param,
             priority = editing?.priority ?: 0
         )
         lifecycleScope.launch(Dispatchers.IO) {

@@ -47,6 +47,17 @@
                     android:singleLine="true" android:textColor="@color/text_primary" android:textSize="14sp" android:inputType="time" />
             </LinearLayout>
 
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/rule_days" android:textSize="12sp" android:textColor="@color/text_secondary" android:layout_marginTop="12dp" />
+            <com.google.android.material.chip.ChipGroup android:id="@+id/chip_days" android:layout_width="match_parent" android:layout_height="wrap_content" app:singleSelection="false">
+                <com.google.android.material.chip.Chip android:id="@+id/day_sun" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/day_sun" app:checkedIconVisible="false" android:tag="1" />
+                <com.google.android.material.chip.Chip android:id="@+id/day_mon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/day_mon" app:checkedIconVisible="false" android:tag="2" />
+                <com.google.android.material.chip.Chip android:id="@+id/day_tue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/day_tue" app:checkedIconVisible="false" android:tag="3" />
+                <com.google.android.material.chip.Chip android:id="@+id/day_wed" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/day_wed" app:checkedIconVisible="false" android:tag="4" />
+                <com.google.android.material.chip.Chip android:id="@+id/day_thu" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/day_thu" app:checkedIconVisible="false" android:tag="5" />
+                <com.google.android.material.chip.Chip android:id="@+id/day_fri" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/day_fri" app:checkedIconVisible="false" android:tag="6" />
+                <com.google.android.material.chip.Chip android:id="@+id/day_sat" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/day_sat" app:checkedIconVisible="false" android:tag="7" />
+            </com.google.android.material.chip.ChipGroup>
+
             <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cb_charging" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/rule_charging_only" android:layout_marginTop="10dp" />
             <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cb_screenoff" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/rule_screen_off_only" />
 
@@ -58,6 +69,9 @@
             <EditText android:id="@+id/et_param" android:layout_width="match_parent" android:layout_height="44dp"
                 android:background="@drawable/bg_search" android:paddingStart="12dp" android:paddingEnd="12dp"
                 android:singleLine="true" android:textColor="@color/text_primary" android:textSize="14sp" />
+            <TextView android:id="@+id/tv_webhook_notice" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="6dp" android:text="@string/webhook_privacy_notice" android:textSize="11sp"
+                android:textColor="@color/badge_filtered_text" android:visibility="gone" />
 
             <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cb_enabled" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/rule_enabled" android:checked="true" android:layout_marginTop="10dp" />
 

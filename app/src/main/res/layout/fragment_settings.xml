@@ -43,6 +43,17 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- 智能静音配置 / 解除（FR-E2） -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp"
+            app:cardCornerRadius="10dp" app:cardElevation="1dp" app:cardBackgroundColor="@color/surface">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="14dp">
+                <TextView android:id="@+id/tv_mute_cfg" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="13sp" android:textColor="@color/text_primary" />
+                <TextView android:id="@+id/tv_mute_duration" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:textSize="12sp" android:textColor="@color/text_secondary" />
+                <Button android:id="@+id/btn_unmute" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="@string/settings_unlock_now" android:textSize="13sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- 隐私 -->
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_privacy" android:textSize="12sp" android:textStyle="bold" android:textColor="@color/primary" android:layout_marginTop="20dp" android:layout_marginBottom="6dp" />
         <com.google.android.material.card.MaterialCardView
@@ -53,6 +64,10 @@
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_encryption_on" android:textSize="12sp" android:textColor="@color/badge_kept_text" />
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginTop="10dp" android:layout_marginBottom="10dp" />
                 <Button android:id="@+id/btn_export" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_export_csv" android:textSize="13sp" />
+                <Button android:id="@+id/btn_exclude_apps" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="@string/settings_exclude_apps" android:textSize="13sp" />
+                <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switch_exclude_mode" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/settings_exclude_mode" />
+                <Button android:id="@+id/btn_reset_model" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="@string/settings_reset_model" android:textSize="13sp" />
+                <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switch_app_lock" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/settings_app_lock" />
                 <Button android:id="@+id/btn_clear" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_clear_data" android:textSize="13sp" android:layout_marginTop="6dp" android:backgroundTint="@color/badge_filtered_text" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

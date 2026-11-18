@@ -37,24 +37,23 @@ object CryptoHelper {
         return kg.generateKey()
     }
 
-    /** 返回 Base64(IV + 密文) */
+    /**
+     * 返回 Base64(IV + 密文)。加密失败抛异常，由调用方拒绝落库，
+     * 绝不以明文形式写入数据库（隐私红线 FR-P1）。
+     */
     fun encrypt(plain: String): String {
         if (plain.isEmpty()) return ""
-        return try {
-            val cipher = Cipher.getInstance(TRANSFORMATION)
-            cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey())
-            val iv = cipher.iv
-            val ct = cipher.doFinal(plain.toByteArray(Charsets.UTF_8))
-            val out = ByteArray(iv.size + ct.size)
-            System.arraycopy(iv, 0, out, 0, iv.size)
-            System.arraycopy(ct, 0, out, iv.size, ct.size)
-            Base64.encodeToString(out, Base64.NO_WRAP)
-        } catch (e: Exception) {
-            // 加密失败时降级为明文并加前缀，保证功能可用；日志不记录正文
-            "PLAIN:$plain"
-        }
+        val cipher = Cipher.getInstance(TRANSFORMATION)
+        cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey())
+        val iv = cipher.iv
+        val ct = cipher.doFinal(plain.toByteArray(Charsets.UTF_8))
+        val out = ByteArray(iv.size + ct.size)
+        System.arraycopy(iv, 0, out, 0, iv.size)
+        System.arraycopy(ct, 0, out, iv.size, ct.size)
+        return Base64.encodeToString(out, Base64.NO_WRAP)
     }
 
+    /** 兼容旧版本可能存在的 PLAIN: 明文数据；新数据绝不会产生该前缀 */
     fun decrypt(cipherText: String): String {
         if (cipherText.isEmpty()) return ""
         if (cipherText.startsWith("PLAIN:")) return cipherText.removePrefix("PLAIN:")

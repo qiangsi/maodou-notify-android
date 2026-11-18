@@ -19,10 +19,14 @@ object NotificationBridge {
 
     private fun nm(context: Context) = context.getSystemService(NotificationManager::class.java)
 
-    fun cancel(packageName: String, key: String) {
-        // 实际取消在 NotificationMonitorService 中通过 cancelNotification(key) 完成
-        NotificationMonitorService.instance?.let { service ->
-            try { service.cancelNotification(key) } catch (e: Exception) { }
+    /** 通过监听器用系统 key 精确消除通知 */
+    fun cancel(key: String): Boolean {
+        val service = NotificationMonitorService.instance ?: return false
+        return try {
+            service.cancelNotification(key)
+            true
+        } catch (e: Exception) {
+            false
         }
     }
 
@@ -62,6 +66,25 @@ object NotificationBridge {
             .setAutoCancel(true)
             .build()
         nm(context).notify("undo_$id".hashCode(), n)
+    }
+
+    /** FR-E3：验证码一键复制通知（系统不允许给他人通知加按钮时的降级方案） */
+    fun showCodeCopy(context: Context, id: Long, code: String) {
+        val copyPi = PendingIntent.getBroadcast(
+            context, ("code_$id").hashCode(),
+            Intent(context, CodeCopyReceiver::class.java).putExtra("code", code),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val n = NotificationCompat.Builder(context, MaodouApp.CH_SNOOZED)
+            .setSmallIcon(R.drawable.ic_stat_notify)
+            .setContentTitle(context.getString(R.string.code_detected_title))
+            .setContentText(context.getString(R.string.code_detected_text, code))
+            .addAction(R.drawable.ic_history, context.getString(R.string.code_copy_action), copyPi)
+            .setContentIntent(copyPi)
+            .setAutoCancel(true)
+            .setTimeoutAfter(60_000)
+            .build()
+        nm(context).notify(("code_$id").hashCode(), n)
     }
 
     fun showSnoozed(context: Context, id: Long, title: String, text: String) {

@@ -1,9 +1,9 @@
 package com.maodou.notify.ui
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
+import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.maodou.notify.R
 import com.maodou.notify.data.CryptoHelper
@@ -11,30 +11,58 @@ import com.maodou.notify.data.NotificationEntity
 import com.maodou.notify.data.Result
 import com.maodou.notify.databinding.ItemNotificationBinding
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
+/** 时间轴列表项：日期分隔头 或 通知 */
+sealed class TimelineItem {
+    data class Header(val label: String, val key: String) : TimelineItem()
+    data class Entry(val entity: NotificationEntity) : TimelineItem()
+}
+
 class NotificationAdapter(
     private val onClick: (NotificationEntity) -> Unit
-) : ListAdapter<NotificationEntity, NotificationAdapter.VH>(Diff()) {
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    inner class VH(val binding: ItemNotificationBinding) : RecyclerView.ViewHolder(binding.root)
+    private var items: List<TimelineItem> = emptyList()
 
-    class Diff : DiffUtil.ItemCallback<NotificationEntity>() {
-        override fun areItemsTheSame(a: NotificationEntity, b: NotificationEntity) = a.id == b.id
-        override fun areContentsTheSame(a: NotificationEntity, b: NotificationEntity) = a == b
+    companion object {
+        private const val TYPE_HEADER = 0
+        private const val TYPE_ENTRY = 1
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-        val binding = ItemNotificationBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return VH(binding)
+    class HeaderVH(val view: View) : RecyclerView.ViewHolder(view) {
+        val tvDate: TextView = view.findViewById(R.id.tv_date)
+    }
+    class EntryVH(val binding: ItemNotificationBinding) : RecyclerView.ViewHolder(binding.root)
+
+    override fun getItemViewType(position: Int) = when (items[position]) {
+        is TimelineItem.Header -> TYPE_HEADER
+        is TimelineItem.Entry -> TYPE_ENTRY
     }
 
-    override fun onBindViewHolder(holder: VH, position: Int) {
-        val item = getItem(position)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return if (viewType == TYPE_HEADER) {
+            HeaderVH(LayoutInflater.from(parent.context).inflate(R.layout.item_date_header, parent, false))
+        } else {
+            EntryVH(ItemNotificationBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (val item = items[position]) {
+            is TimelineItem.Header -> (holder as HeaderVH).tvDate.text = item.label
+            is TimelineItem.Entry -> bindEntry((holder as EntryVH), item.entity)
+        }
+    }
+
+    override fun getItemCount() = items.size
+
+    private fun bindEntry(holder: EntryVH, item: NotificationEntity) {
         val b = holder.binding
         b.tvApp.text = item.appName
-        b.tvTime.text = fmt(item.timestamp)
+        b.tvTime.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(item.timestamp))
         b.tvTitle.text = CryptoHelper.decrypt(item.titleEnc)
         b.tvText.text = CryptoHelper.decrypt(item.textEnc)
 
@@ -50,20 +78,32 @@ class NotificationAdapter(
         } else {
             b.tvScore.text = ""
         }
-
         b.root.setOnClickListener { onClick(item) }
     }
 
-    private fun fmt(ts: Long): String {
-        val cal = java.util.Calendar.getInstance()
-        val today = java.util.Calendar.getInstance()
-        val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
-        cal.timeInMillis = ts
-        return if (cal.get(java.util.Calendar.DAY_OF_YEAR) == today.get(java.util.Calendar.DAY_OF_YEAR) &&
-            cal.get(java.util.Calendar.YEAR) == today.get(java.util.Calendar.YEAR)) {
-            sdf.format(Date(ts))
+    /**
+     * 按日期分组。list 需按时间倒序；组内按当日时间正序渲染（PRD FR-H3）。
+     * @param groupByDay true=插入日期头；false=平铺（用于单日筛选结果）
+     */
+    fun submitList(list: List<NotificationEntity>, groupByDay: Boolean = true) {
+        val dayKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val dayLabel = SimpleDateFormat("yyyy年M月d日", Locale.getDefault())
+        val result = mutableListOf<TimelineItem>()
+        if (!groupByDay) {
+            list.forEach { result += TimelineItem.Entry(it) }
         } else {
-            SimpleDateFormat("MM-dd HH:mm", Locale.getDefault()).format(Date(ts))
+            // list 已按时间倒序；先按天分组（保持天的倒序），组内再正序
+            val byDay = LinkedHashMap<String, MutableList<NotificationEntity>>()
+            list.forEach { e ->
+                val k = dayKey.format(Date(e.timestamp))
+                byDay.getOrPut(k) { mutableListOf() }.add(e)
+            }
+            byDay.forEach { (k, entries) ->
+                result += TimelineItem.Header(dayLabel.format(Date(entries.first().timestamp)), k)
+                entries.sortedBy { it.timestamp }.forEach { result += TimelineItem.Entry(it) }
+            }
         }
+        items = result
+        notifyDataSetChanged()
     }
 }

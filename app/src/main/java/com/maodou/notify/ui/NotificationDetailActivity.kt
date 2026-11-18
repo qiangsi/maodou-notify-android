@@ -59,7 +59,10 @@ class NotificationDetailActivity : AppCompatActivity() {
         }
         binding.progressScore.progress = e.score
         binding.tvScore.text = "骚扰概率 ${e.score}%　（0% 正常 — 100% 骚扰）"
+        // FR-H5：该通知已离开通知栏，历史保留的是到达时的内容快照。
+        // 如实说明边界，不虚构「已被发送方撤回」结论。
         binding.tvRecalled.visibility = if (e.removedReason != null) android.view.View.VISIBLE else android.view.View.GONE
+        binding.tvRecalled.text = "此通知已离开通知栏，这里保留的是它到达通知栏时的内容快照。若发送方随后撤回或删除，你仍可在此查看；未产生过通知的消息无法捕获。"
     }
 
     private fun mark(label: Int) {

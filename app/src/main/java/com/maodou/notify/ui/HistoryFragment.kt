@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.chip.Chip
+import com.google.android.material.datepicker.MaterialDatePicker
 import com.maodou.notify.MaodouApp
 import com.maodou.notify.R
 import com.maodou.notify.data.CryptoHelper
@@ -20,6 +21,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 class HistoryFragment : Fragment() {
 
@@ -30,6 +36,11 @@ class HistoryFragment : Fragment() {
     private var keyword = ""
     private var filter = FILTER_ALL
     private var searchJob: Job? = null
+
+    // 时间轴与多维筛选
+    private var selectedDay: String? = null // yyyy-MM-dd
+    private var selectedType: String? = null // code/ongoing/media/normal
+    private var app: MaodouApp? = null
 
     companion object {
         private const val FILTER_ALL = 0
@@ -43,6 +54,7 @@ class HistoryFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        app = requireActivity().application as MaodouApp
         adapter = NotificationAdapter { item ->
             startActivity(Intent(requireContext(), NotificationDetailActivity::class.java).putExtra("id", item.id))
         }
@@ -58,7 +70,7 @@ class HistoryFragment : Fragment() {
             }
         })
 
-        binding.chipFilter.setOnCheckedChangeListener { group, checkedId ->
+        binding.chipFilter.setOnCheckedChangeListener { _, checkedId ->
             filter = when (checkedId) {
                 R.id.chip_kept -> FILTER_KEPT
                 R.id.chip_filtered -> FILTER_FILTERED
@@ -67,13 +79,65 @@ class HistoryFragment : Fragment() {
             applyList()
         }
 
-        val app = requireActivity().application as MaodouApp
+        // 日期选择（FR-H3）
+        binding.chipDate.setOnClickListener { showDatePicker() }
+        binding.chipDate.setOnCloseIconClickListener {
+            selectedDay = null
+            binding.chipDate.text = getString(R.string.history_date_pick)
+            applyList()
+        }
+
+        // 类型筛选（FR-H2）
+        binding.chipType.setOnClickListener { showTypePicker() }
+        binding.chipType.setOnCloseIconClickListener {
+            selectedType = null
+            binding.chipType.text = getString(R.string.search_type_all)
+            applyList()
+        }
+
         viewLifecycleOwner.lifecycleScope.launch {
-            app.database.notificationDao().observeAll().collectLatest { list ->
+            app!!.database.notificationDao().observeAll().collectLatest { list ->
                 all = list
                 applyList()
             }
         }
+    }
+
+    private fun showDatePicker() {
+        val picker = MaterialDatePicker.Builder.datePicker()
+            .setTitleText(R.string.history_date_pick)
+            .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
+            .build()
+        picker.addOnPositiveButtonClickListener { utc ->
+            // 用 UTC 日历取年月日，避免时区偏移导致错一天
+            val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+            cal.timeInMillis = utc
+            selectedDay = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }.format(Date(utc))
+            binding.chipDate.text = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(cal.time)
+            applyList()
+        }
+        picker.show(parentFragmentManager, "date_picker")
+    }
+
+    private fun showTypePicker() {
+        val types = arrayOf(
+            getString(R.string.search_type_all) to null,
+            getString(R.string.search_type_code) to "code",
+            getString(R.string.search_type_ongoing) to "ongoing",
+            getString(R.string.search_type_media) to "media",
+            getString(R.string.search_type_normal) to "normal"
+        )
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(R.string.search_type_all)
+            .setItems(types.map { it.first }.toTypedArray()) { _, which ->
+                selectedType = types[which].second
+                binding.chipType.text = types[which].first
+                binding.chipType.isCloseIconVisible = selectedType != null
+                applyList()
+            }
+            .show()
     }
 
     private fun debounceApply() {
@@ -88,17 +152,38 @@ class HistoryFragment : Fragment() {
         var list = all
         if (filter == FILTER_KEPT) list = list.filter { it.result == Result.KEPT }
         if (filter == FILTER_FILTERED) list = list.filter { it.result != Result.KEPT }
+        if (selectedType != null) list = list.filter { it.category == selectedType }
+        if (selectedDay != null) list = list.filter {
+            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it.timestamp)) == selectedDay
+        }
         if (keyword.isNotEmpty()) {
             val kw = keyword.lowercase()
             list = list.filter { item ->
                 item.appName.lowercase().contains(kw) ||
+                item.packageName.lowercase().contains(kw) ||
                 CryptoHelper.decrypt(item.titleEnc).lowercase().contains(kw) ||
                 CryptoHelper.decrypt(item.textEnc).lowercase().contains(kw) ||
-                item.packageName.lowercase().contains(kw)
+                (item.filterReason ?: "").lowercase().contains(kw) // 按命中规则/原因搜索
             }
         }
-        adapter.submitList(list)
+        adapter.submitList(list, groupByDay = selectedDay == null)
+
+        // 概览计数（FR-H7）：基于全量数据实时统计
+        val kept = all.count { it.result == Result.KEPT }
+        val filtered = all.count { it.result != Result.KEPT }
+        val a = app
+        if (a != null) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val learned = a.database.notificationDao().countLearned()
+                binding.tvCount.text = getString(R.string.history_count_summary, kept, filtered, learned)
+            }
+        } else {
+            binding.tvCount.text = getString(R.string.history_count_summary, kept, filtered, 0)
+        }
+
         binding.tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+        binding.tvEmpty.text = if (selectedDay != null || selectedType != null || keyword.isNotEmpty())
+            getString(R.string.history_no_result) else getString(R.string.empty_history)
     }
 
     override fun onDestroyView() {

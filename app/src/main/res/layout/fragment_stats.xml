@@ -21,6 +21,22 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- 口径 / 窗口切换（FR-S1） -->
+        <com.google.android.material.chip.ChipGroup android:id="@+id/chip_scope" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="14dp" app:singleSelection="true">
+            <com.google.android.material.chip.Chip android:id="@+id/chip_scope_all" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stats_scope_all" android:checked="true" app:checkedIconVisible="false" />
+            <com.google.android.material.chip.Chip android:id="@+id/chip_scope_kept" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stats_scope_kept" app:checkedIconVisible="false" />
+            <com.google.android.material.chip.Chip android:id="@+id/chip_scope_filtered" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stats_scope_filtered" app:checkedIconVisible="false" />
+        </com.google.android.material.chip.ChipGroup>
+        <com.google.android.material.chip.ChipGroup android:id="@+id/chip_window" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" app:singleSelection="true">
+            <com.google.android.material.chip.Chip android:id="@+id/chip_7d" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stats_recent_7" android:checked="true" app:checkedIconVisible="false" />
+            <com.google.android.material.chip.Chip android:id="@+id/chip_30d" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stats_recent_30" app:checkedIconVisible="false" />
+        </com.google.android.material.chip.ChipGroup>
+
+        <!-- 日报趋势（FR-S2） -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stats_daily" android:textSize="14sp" android:textStyle="bold" android:textColor="@color/text_primary" android:layout_marginTop="18dp" />
+        <LinearLayout android:id="@+id/daily_container" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="8dp" />
+        <TextView android:id="@+id/tv_learned" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:textSize="12sp" android:textColor="@color/text_secondary" />
+
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stats_top_apps" android:textSize="14sp" android:textStyle="bold" android:textColor="@color/text_primary" android:layout_marginTop="20dp" />
         <LinearLayout android:id="@+id/rank_container" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="8dp" />
     </LinearLayout>

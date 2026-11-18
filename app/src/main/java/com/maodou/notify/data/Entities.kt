@@ -29,9 +29,13 @@ data class NotificationEntity(
     val score: Int = 0,
     /** null=未标注, 1=骚扰, 0=正常 */
     val marked: Int? = null,
-    /** 系统移除原因（用于识别被撤回/删除） */
+    /** 系统移除原因（用于识别被撤回/删除）：recalled=发送方撤回，dismissed=用户划掉 */
     val removedReason: String? = null,
-    val bigTextEnc: String? = null
+    val bigTextEnc: String? = null,
+    /** 系统通知 key，供 cancelNotification 精确消除；老数据为 null */
+    val sysKey: String? = null,
+    /** 通知类型/渠道分类：验证码、常驻、媒体等 */
+    val category: String? = null
 )
 
 /**

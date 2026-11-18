@@ -11,7 +11,10 @@ import com.maodou.notify.databinding.ItemRuleBinding
 
 class RuleAdapter(
     private val onEdit: (FilterRule) -> Unit,
-    private val onToggle: (FilterRule, Boolean) -> Unit
+    private val onToggle: (FilterRule, Boolean) -> Unit,
+    private val onDelete: (FilterRule) -> Unit,
+    private val onMove: (FilterRule, Int) -> Unit, // delta: -1 上移, +1 下移
+    private val onDuplicate: (FilterRule) -> Unit
 ) : ListAdapter<FilterRule, RuleAdapter.VH>(Diff()) {
 
     inner class VH(val binding: ItemRuleBinding) : RecyclerView.ViewHolder(binding.root)
@@ -35,6 +38,15 @@ class RuleAdapter(
         b.switchEnabled.isChecked = rule.enabled
         b.switchEnabled.setOnCheckedChangeListener { _, checked -> onToggle(rule, checked) }
         b.root.setOnClickListener { onEdit(rule) }
+        b.btnDelete.setOnClickListener { onDelete(rule) }
+        b.btnUp.setOnClickListener { onMove(rule, -1) }
+        b.btnDown.setOnClickListener { onMove(rule, 1) }
+        b.btnDup.setOnClickListener { onDuplicate(rule) }
+        // 边界：首条禁用上移、末条禁用下移
+        b.btnUp.isEnabled = position > 0
+        b.btnDown.isEnabled = position < itemCount - 1
+        b.btnUp.alpha = if (b.btnUp.isEnabled) 1f else 0.3f
+        b.btnDown.alpha = if (b.btnDown.isEnabled) 1f else 0.3f
     }
 
     private fun buildDesc(r: FilterRule): String {
@@ -43,6 +55,7 @@ class RuleAdapter(
         else parts += "全部应用"
         if (r.keywordInclude.isNotBlank()) parts += "含「${r.keywordInclude}」"
         if (r.timeStartMin >= 0) parts += "定时段"
+        if (r.daysOfWeek.isNotBlank()) parts += "指定星期"
         if (r.chargingOnly) parts += "仅充电"
         if (r.screenOffOnly) parts += "仅锁屏"
         parts += "→ ${actionName(r.action)}"

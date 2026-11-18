@@ -5,15 +5,22 @@
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:background="@color/background">
 
-    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler"
-            android:layout_width="match_parent" android:layout_height="match_parent"
-            android:clipToPadding="false" android:paddingBottom="8dp" />
-        <TextView android:id="@+id/tv_empty" android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_gravity="center" android:text="@string/empty_rules"
-            android:textColor="@color/text_secondary" android:textSize="14sp" android:visibility="gone" />
-    </FrameLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="12dp" android:layout_marginStart="12dp" android:layout_marginEnd="12dp">
+            <Button android:id="@+id/btn_templates" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/rule_templates" android:textSize="12sp" />
+            <Button android:id="@+id/btn_export_rules" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="6dp" android:text="@string/rule_export" android:textSize="12sp" />
+            <Button android:id="@+id/btn_import_rules" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="6dp" android:text="@string/rule_import" android:textSize="12sp" />
+        </LinearLayout>
+        <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler"
+                android:layout_width="match_parent" android:layout_height="match_parent"
+                android:clipToPadding="false" android:paddingBottom="8dp" />
+            <TextView android:id="@+id/tv_empty" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_gravity="center" android:text="@string/empty_rules"
+                android:textColor="@color/text_secondary" android:textSize="14sp" android:visibility="gone" />
+        </FrameLayout>
+    </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add" android:layout_width="wrap_content" android:layout_height="wrap_content"
