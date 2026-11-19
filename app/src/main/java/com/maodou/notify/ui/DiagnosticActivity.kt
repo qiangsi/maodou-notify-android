@@ -16,6 +16,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maodou.notify.MaodouApp
 import com.maodou.notify.R
+import com.maodou.notify.listener.NotificationMonitorService
 import com.maodou.notify.util.DiagnosticProbe
 import com.maodou.notify.util.ThemeHelper
 import com.maodou.notify.util.hasPostNotificationPermission
@@ -44,6 +45,11 @@ class DiagnosticActivity : AppCompatActivity() {
         findViewById<View>(R.id.btn_back).setOnClickListener { finish() }
         findViewById<View>(R.id.btn_run_probe).setOnClickListener { runSelfProbe() }
         btnWatch.setOnClickListener { toggleSession() }
+        findViewById<View>(R.id.btn_force_rebind).setOnClickListener {
+            NotificationMonitorService.forceRebind(this)
+            Toast.makeText(this, R.string.diag_force_rebind_done, Toast.LENGTH_LONG).show()
+            refresh()
+        }
         findViewById<View>(R.id.btn_refresh).setOnClickListener { refresh() }
         findViewById<View>(R.id.btn_copy).setOnClickListener { copyReport() }
         findViewById<View>(R.id.btn_logcat).setOnClickListener { showLogcat() }

@@ -154,8 +154,18 @@ object DiagnosticProbe {
         val now = System.currentTimeMillis()
         val fmt = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
 
+        // 顶部一句话诊断：把最关键的状态先摆出来，避免用户漏看
+        val topListenerOn = isListenerEnabled(ctx)
+        val topConnected = NotificationMonitorService.isConnected
+        val headline = when {
+            !topListenerOn -> "❌ 通知使用权未授予 —— 去系统「通知使用权」打开毛豆通知"
+            !topConnected -> "❌ 假连接：权限已给，但监听服务没有真正连上系统（本次修复重点）"
+            else -> "✅ 通知使用权与监听服务均正常 —— 若不拦截，问题在过滤配置层"
+        }
+
         sb.appendLine("===== 毛豆通知 · 诊断报告 =====")
         sb.appendLine("生成时间：${fmt.format(Date(now))}")
+        sb.appendLine("★一句话诊断：$headline")
         sb.appendLine()
 
         // 1. 设备环境
@@ -194,8 +204,8 @@ object DiagnosticProbe {
         val ca = p.listenerConnectedAt
         val da = p.listenerDisconnectedAt
         sb.appendLine("【3. 服务状态】")
-        sb.appendLine("监听服务实例：${if (connected) "存在" else "不存在"}")
-        sb.appendLine("最近连接(onListenerConnected)：${if (ca > 0) "${fmt.format(Date(ca))}（${(now - ca) / 60000} 分钟前）" else "从未连接 ← 重点"}")
+        sb.appendLine("监听真正连接(onListenerConnected)：${if (connected) "已连接 ✅" else "未连接 ❌ ← 重点"}")
+        sb.appendLine("最近连接时间：${if (ca > 0) "${fmt.format(Date(ca))}（${(now - ca) / 60000} 分钟前）" else "从未连接"}")
         sb.appendLine("最近断开(onListenerDisconnected)：${if (da > 0) fmt.format(Date(da)) else "无"}")
         sb.appendLine("保活前台服务：${serviceState(ctx, KeepAliveService::class.java.name)}")
         sb.appendLine()
@@ -244,7 +254,7 @@ object DiagnosticProbe {
             log.lines().takeLast(20).forEach { sb.appendLine(it) }
         }
         sb.appendLine()
-        sb.appendLine(conclusion(listenerOn, ca, state, p.probeSessionCount, p.filterPaused, enabledRules))
+        sb.appendLine(conclusion(listenerOn, connected, ca, state, p.probeSessionCount, p.filterPaused, enabledRules))
         return sb.toString()
     }
 
@@ -295,6 +305,7 @@ object DiagnosticProbe {
 
     private fun conclusion(
         listenerOn: Boolean,
+        connected: Boolean,
         connectedAt: Long,
         probeState: Int,
         sessionCount: Int,
@@ -307,9 +318,15 @@ object DiagnosticProbe {
                 "通知使用权未授予 —— 这是最高频根因。请到 系统设置 → 通知/特殊应用权限 → 通知使用权，" +
                     "把毛豆通知打开。注意它和「通知发送权限」不是一回事：前者才允许读取别人的通知。"
             )
+            !connected -> sb.appendLine(
+                "★假连接（本次确诊）：通知使用权已给，但监听服务没有真正连上系统，" +
+                    "所以 onNotificationPosted 根本不会触发，自测当然捕获不到。" +
+                    "旧版本用「服务实例存在」误判为已连接、且因此跳过重连，导致永远修不好。" +
+                    "本版已修复：打开应用时、诊断页点「强制重连监听」都会真正重新绑定。请先点强制重连，" +
+                    "再跑一次自测。vivo/三星等机型还需在 i管家/设置里放开「自启动」与「通知使用权」。"
+            )
             connectedAt == 0L -> sb.appendLine(
-                "监听服务从未真正连接过系统。权限可能刚开未生效，或厂商 ROM 拦截。" +
-                    "建议：回到设置页点「重新连接监听」并重新打开应用；国产机型放开自启动/后台运行。"
+                "监听服务刚连接但尚无历史连接记录，先跑一次自测观察结果。国产机型请放开自启动/后台运行。"
             )
             probeState == STATE_CAPTURED || sessionCount > 0 -> {
                 sb.appendLine("监听链路正常：自测或真实通知已进入回调（捕获 $sessionCount 条）。如果仍觉得「没拦截」，问题在过滤层：")
@@ -319,9 +336,9 @@ object DiagnosticProbe {
                 sb.appendLine("  · 注意：替换内容/改铃声等动作受系统限制本就不会生效，只有「消除通知(DISMISS)」能真正拦掉。")
             }
             else -> sb.appendLine(
-                "监听服务曾连接，但自测与会话观察都没捕获到通知。可能是服务被解绑、厂商限制了回调，" +
-                    "或通知使用权被临时收回。建议：点「重新连接监听」→ 完全退出应用重开 → 再跑一次自测；" +
-                    "国产机型逐项放开自启动与电池限制。"
+                "监听服务已连接，但自测与会话观察都没捕获到通知。可能被 ROM 限制了回调，" +
+                    "建议点「强制重连监听」→ 完全退出应用重开 → 再跑一次自测；" +
+                    "并确认自测通知确实出现在通知栏（若连自测通知都不显示，是通知发送权限问题）。"
             )
         }
         return sb.toString()

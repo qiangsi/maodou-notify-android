@@ -27,22 +27,63 @@ import kotlinx.coroutines.launch
 class NotificationMonitorService : NotificationListenerService() {
 
     companion object {
+        private const val TAG = "MaodouDiag"
+
         var instance: NotificationMonitorService? = null
             private set
 
-        /** 监听服务是否真正连接到系统。用于设置页显示真实运行状态。 */
-        val isConnected: Boolean get() = instance != null
+        /**
+         * 真正的连接状态：只有系统回调 onListenerConnected 才为 true。
+         * 注意：不能用 instance != null 判断！服务 onCreate 只代表进程内创建了实例，
+         * 并不代表系统真正绑定了 listener。国产 ROM 上常见「实例存在但从未连接」的假连接，
+         * 这正是「权限已给、进程也在、但收不到任何通知」的根因。
+         */
+        @Volatile
+        var connected: Boolean = false
+            private set
+
+        /** 监听服务是否真正连接到系统（以 onListenerConnected 为准）。 */
+        val isConnected: Boolean get() = connected
 
         /**
          * 请求系统重新绑定监听服务。
-         * 进程被杀/用户划掉最近任务后，权限仍在但服务可能未连接；主动 rebind 可恢复接管。
+         * 关键修复：过去用 instance != null 判断，导致「假连接」时永远跳过重绑。
+         * 现在只要未真正 connected 就主动 rebind。
          */
         fun rebindIfNeeded(context: Context) {
-            if (instance != null) return
+            if (connected) return
             try {
                 val cn = ComponentName(context.applicationContext, NotificationMonitorService::class.java)
                 requestRebind(cn)
-            } catch (e: Exception) { }
+                android.util.Log.d(TAG, "rebindIfNeeded: requestRebind (connected=$connected)")
+            } catch (e: Exception) {
+                android.util.Log.w(TAG, "rebindIfNeeded failed: ${e.javaClass.simpleName}")
+            }
+        }
+
+        /**
+         * 强制重连（诊断页/看门狗用）：requestRebind 在部分 ROM 上对「假连接」无效，
+         * 通过 disable→enable 组件强制系统重新走一遍绑定流程。这是国产 ROM 上最有效的手段。
+         */
+        fun forceRebind(context: Context) {
+            val cn = ComponentName(context.applicationContext, NotificationMonitorService::class.java)
+            try {
+                val pm = context.applicationContext.packageManager
+                pm.setComponentEnabledSetting(
+                    cn,
+                    android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                    0
+                )
+                pm.setComponentEnabledSetting(
+                    cn,
+                    android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                    android.content.pm.PackageManager.DONT_KILL_APP
+                )
+                android.util.Log.d(TAG, "forceRebind: component toggled")
+            } catch (e: Exception) {
+                android.util.Log.w(TAG, "forceRebind toggle failed: ${e.javaClass.simpleName}")
+                rebindIfNeeded(context)
+            }
         }
 
         /** 验证码识别正则：6~8 位数字（可含字母），独立成词或紧邻「验证码/.code」上下文 */
@@ -63,6 +104,8 @@ class NotificationMonitorService : NotificationListenerService() {
 
     override fun onListenerConnected() {
         super.onListenerConnected()
+        connected = true
+        android.util.Log.d(TAG, "onListenerConnected: LISTENER REALLY CONNECTED")
         DiagnosticProbe.onListenerConnected(applicationContext)
         val app = applicationContext as? MaodouApp
         if (app != null) {
@@ -83,6 +126,8 @@ class NotificationMonitorService : NotificationListenerService() {
      * 权限仍在时 requestRebind 可恢复接管，无需用户手动往返系统设置。
      */
     override fun onListenerDisconnected() {
+        connected = false
+        android.util.Log.w(TAG, "onListenerDisconnected: LISTENER DETACHED")
         DiagnosticProbe.onListenerDisconnected(applicationContext)
         (applicationContext as? MaodouApp)?.prefs?.listenerDisconnectedAt = System.currentTimeMillis()
         try {
@@ -96,6 +141,7 @@ class NotificationMonitorService : NotificationListenerService() {
         // v1.4.1 诊断探针：必须在「忽略自身通知」之前旁听，否则自测通知会被丢弃。
         // 只记录状态、不改通知正文、不影响任何后续处理链路。
         try { DiagnosticProbe.onNotificationSeen(applicationContext, sbn) } catch (e: Exception) { }
+        android.util.Log.d(TAG, "onNotificationPosted: pkg=${sbn.packageName} connected=$connected")
 
         val app = applicationContext as? MaodouApp ?: return
         val pkg = sbn.packageName

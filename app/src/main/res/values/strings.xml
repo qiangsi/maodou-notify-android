@@ -120,7 +120,7 @@
     <string name="settings_clear_confirm">确定清空全部通知历史和 AI 标注？此操作不可恢复。</string>
     <string name="settings_cleared">已清空</string>
     <string name="settings_about">关于</string>
-    <string name="settings_version">版本 1.4.1 · 数据仅存本机</string>
+    <string name="settings_version">版本 1.4.2 · 数据仅存本机</string>
     <string name="export_done">已导出到文档目录</string>
     <string name="export_failed">导出失败</string>
 
@@ -324,6 +324,8 @@
     <string name="diag_watch">观察真实通知</string>
     <string name="diag_watch_stop">停止观察</string>
     <string name="diag_refresh">刷新状态</string>
+    <string name="diag_force_rebind">强制重连监听</string>
+    <string name="diag_force_rebind_done">已强制重连，请重新打开应用后再点「发送自测通知」验证</string>
     <string name="diag_copy">复制报告</string>
     <string name="diag_logcat">抓取日志</string>
     <string name="diag_open_permission">通知使用权</string>

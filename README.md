@@ -3,7 +3,7 @@
 依据 PRD《毛豆通知 v0.1》实现的 Android 原生通知管家：**把每条通知存进可搜索的本地历史，用离线 AI 挡骚扰，其余交给自定义规则**。
 
 - **技术栈**：Kotlin + Jetpack Room + Material 3 + 协程 + ViewBinding
-- **版本**：**v1.4.1**（versionCode 8）· 内置通知诊断探针 + 补齐 INTERNET 权限 · 最低 Android 8.0（API 26），目标 Android 15（API 35）
+- **版本**：**v1.4.2**（versionCode 9）· 修复监听服务「假连接」死循环 · 最低 Android 8.0（API 26），目标 Android 15（API 35）
 - **隐私**：通知内容 AES-256-GCM 加密存本地（密钥在 Android Keystore），零上传；唯一外发通道是用户显式配置的 Webhook
 - **构建**：JDK 17 + Gradle 8.14 + Android SDK 35，`gradle assembleDebug` 已真实编译通过（BUILD SUCCESSFUL）
 
@@ -21,6 +21,17 @@
 - **弹窗**：统一走 `ThemeOverlay.Maodou.Dialog`，表面色与页面一致，单选点为主色，不再出现 Material 默认的偏色底。
 
 ## 更新记录
+
+### v1.4.2 · 修复监听服务「假连接」死循环（2026-11-19）
+- **根因**：旧版用「服务实例存在」(`instance != null`) 判断监听是否连上，但 `onCreate` 只代表进程内创建了对象，不代表系统真正绑定了 listener（真正标志是 `onListenerConnected`）。国产 ROM 上常见「实例存在但从未连接」的假连接：设置页显示已授权/运行中，`onNotificationPosted` 却永不触发；而重连函数看到 `instance != null` 直接跳过，永远无法自愈。
+- **修复**：
+  - `isConnected` 改以真实的 `onListenerConnected`/`onListenerDisconnected` 为准，设置页如实显示连接状态。
+  - 未真正连接时 `requestRebind` 不再被跳过。
+  - 新增 `forceRebind`（组件 disable→enable 强制重绑，国产 ROM 上对假连接最有效）；诊断页加「强制重连监听」按钮，看门狗周期检测假连接自动重绑。
+  - 关键回调（`onListenerConnected`/`onListenerDisconnected`/`onNotificationPosted`）打 `MaodouDiag` 日志，抓日志即可确认回调是否触发。
+  - 诊断报告顶部加「一句话诊断」，服务状态显示真实连接与否。
+- **使用**：装上→设置→运行诊断，顶部若显示假连接，点「强制重连监听」→完全退出重开→再自测。vivo/三星请同时放开「自启动」与「通知使用权」。
+- versionCode 9，沿用 debug.keystore 可覆盖安装。
 
 ### v1.4.1 · 内置通知诊断探针（2026-11-19）
 - **诊断页**（设置页 → 运行状态卡片 →「运行诊断」，新增 `ui/DiagnosticActivity.kt` + `util/DiagnosticProbe.kt`）：

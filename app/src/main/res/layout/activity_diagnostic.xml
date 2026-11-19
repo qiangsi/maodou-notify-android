@@ -82,6 +82,19 @@
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_force_rebind"
+                style="@style/Widget.Maodou.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:text="@string/diag_force_rebind"
+                android:textSize="12sp" />
+
+            <Space
+                android:layout_width="6dp"
+                android:layout_height="1dp" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_refresh"
                 style="@style/Widget.Maodou.TonalButton"
                 android:layout_width="wrap_content"

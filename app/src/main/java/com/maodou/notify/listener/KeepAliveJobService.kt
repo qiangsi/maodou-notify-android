@@ -21,6 +21,10 @@ class KeepAliveJobService : JobService() {
             } catch (e: Exception) {
                 // 系统限制后台启动前台服务时忽略，等下一个周期重试
             }
+            // 假连接自愈：权限已给但 listener 没真正连上，周期性 toggle 组件强制重绑
+            if (!NotificationMonitorService.isConnected) {
+                NotificationMonitorService.forceRebind(applicationContext)
+            }
         }
         // 周期性任务执行一次后需要重新排期
         schedule(applicationContext)
