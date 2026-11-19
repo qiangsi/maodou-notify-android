@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.chip.Chip
 import com.google.android.material.datepicker.MaterialDatePicker
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maodou.notify.MaodouApp
 import com.maodou.notify.R
 import com.maodou.notify.data.CryptoHelper
@@ -129,7 +130,7 @@ class HistoryFragment : Fragment() {
             getString(R.string.search_type_media) to "media",
             getString(R.string.search_type_normal) to "normal"
         )
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.search_type_all)
             .setItems(types.map { it.first }.toTypedArray()) { _, which ->
                 selectedType = types[which].second

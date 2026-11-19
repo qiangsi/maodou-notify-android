@@ -1,6 +1,7 @@
 package com.maodou.notify.ui
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -16,6 +17,7 @@ import com.maodou.notify.data.DailyRaw
 import com.maodou.notify.data.PackageCount
 import com.maodou.notify.data.Result
 import com.maodou.notify.databinding.FragmentStatsBinding
+import com.maodou.notify.util.ThemeHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -116,31 +118,35 @@ class StatsFragment : Fragment() {
             withContext(Dispatchers.Main) {
                 binding.tvTotal.text = total.toString()
                 binding.tvFiltered.text = filtered.toString()
-                binding.tvLearned.text = getString(R.string.stats_learned) + "：$learned"
+                binding.tvLearned.text = learned.toString()
 
                 // 趋势条
                 binding.dailyContainer.removeAllViews()
                 val maxTrend = trend.values.maxOfOrNull { it[0] }?.coerceAtLeast(1) ?: 1
                 trend.forEach { (day, arr) ->
-                    val row = LinearLayout(requireContext()).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, 2, 0, 2) }
-                    val tv = TextView(requireContext()).apply { text = day; textSize = 11f; setTextColor(requireContext().getColor(R.color.text_secondary)); layoutParams = LinearLayout.LayoutParams(56, LinearLayout.LayoutParams.WRAP_CONTENT) }
-                    val bar = ProgressBar(requireContext(), null, android.R.attr.progressBarStyleHorizontal).apply {
-                        max = maxTrend; progress = arr[0]
-                        layoutParams = LinearLayout.LayoutParams(0, 12, 1f).apply { setMargins(8, 0, 0, 0) }
+                    val row = layoutInflater.inflate(R.layout.item_trend, binding.dailyContainer, false)
+                    row.findViewById<TextView>(R.id.tv_day).text = day
+                    row.findViewById<TextView>(R.id.tv_num).text = "${arr[0]} / ${arr[1]}"
+                    row.findViewById<ProgressBar>(R.id.bar).apply {
+                        max = maxTrend
+                        progress = arr[0]
+                        applyProgressTint(this)
                     }
-                    val tvNum = TextView(requireContext()).apply { text = "${arr[0]}/${arr[1]}"; textSize = 11f; setTextColor(requireContext().getColor(R.color.text_secondary)); layoutParams = LinearLayout.LayoutParams(72, LinearLayout.LayoutParams.WRAP_CONTENT) }
-                    row.addView(tv); row.addView(bar); row.addView(tvNum)
                     binding.dailyContainer.addView(row)
                 }
 
                 // 排行
                 binding.rankContainer.removeAllViews()
+                binding.tvRankEmpty.visibility = if (rank.isEmpty()) View.VISIBLE else View.GONE
                 val max = rank.firstOrNull()?.cnt ?: 1
                 rank.take(10).forEach { row: PackageCount ->
                     val item = layoutInflater.inflate(R.layout.item_rank, binding.rankContainer, false)
                     item.findViewById<TextView>(R.id.tv_app).text = labels[row.packageName] ?: row.packageName
                     item.findViewById<TextView>(R.id.tv_count).text = "${row.cnt} 条"
-                    item.findViewById<ProgressBar>(R.id.bar).apply { this.max = max; progress = row.cnt }
+                    item.findViewById<ProgressBar>(R.id.bar).apply {
+                        this.max = max; progress = row.cnt
+                        applyProgressTint(this)
+                    }
                     // 点击排行直达规则创建（FR-S2）
                     item.setOnClickListener {
                         startActivity(Intent(requireContext(), RuleEditActivity::class.java).putExtra("pkg", row.packageName))
@@ -149,6 +155,15 @@ class StatsFragment : Fragment() {
                 }
             }
         }
+    }
+
+    /** 统计图表进度条跟随当前主题配色，避免深色模式下出现系统默认灰色。 */
+    private fun applyProgressTint(bar: ProgressBar) {
+        val primary = ThemeHelper.resolveColor(
+            requireContext(), androidx.appcompat.R.attr.colorPrimary, R.color.primary
+        )
+        bar.progressTintList = ColorStateList.valueOf(primary)
+        bar.progressBackgroundTintList = ColorStateList.valueOf(requireContext().getColor(R.color.surface_alt))
     }
 
     private fun scopeMatch(result: String) = when (scope) {

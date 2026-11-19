@@ -1,9 +1,12 @@
 package com.maodou.notify.ui
 
+import android.content.res.ColorStateList
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.maodou.notify.R
 import com.maodou.notify.data.CryptoHelper
@@ -26,6 +29,7 @@ class NotificationAdapter(
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var items: List<TimelineItem> = emptyList()
+    private val iconCache = HashMap<String, Drawable?>()
 
     companion object {
         private const val TYPE_HEADER = 0
@@ -79,6 +83,31 @@ class NotificationAdapter(
             b.tvScore.text = ""
         }
         b.root.setOnClickListener { onClick(item) }
+        bindAppIcon(b, item.packageName)
+    }
+
+    /** 应用图标：缓存避免滚动时重复查询 PackageManager；取不到时回退到通用铃铛。 */
+    private fun bindAppIcon(b: ItemNotificationBinding, pkg: String) {
+        val ctx = b.root.context
+        val icon: Drawable? = iconCache.getOrPut(pkg) {
+            try {
+                ctx.packageManager.getApplicationIcon(pkg)
+            } catch (e: Exception) {
+                null
+            }
+        }
+        if (icon != null) {
+            b.ivAppIcon.setPadding(0, 0, 0, 0)
+            b.ivAppIcon.imageTintList = null
+            b.ivAppIcon.setImageDrawable(icon)
+        } else {
+            val p = (8 * ctx.resources.displayMetrics.density).toInt()
+            b.ivAppIcon.setPadding(p, p, p, p)
+            b.ivAppIcon.setImageResource(R.drawable.ic_bell)
+            b.ivAppIcon.imageTintList = ColorStateList.valueOf(
+                ContextCompat.getColor(ctx, R.color.text_tertiary)
+            )
+        }
     }
 
     /**

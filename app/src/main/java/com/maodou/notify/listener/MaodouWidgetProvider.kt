@@ -6,10 +6,13 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.widget.RemoteViews
+import androidx.core.content.ContextCompat
 import com.maodou.notify.MaodouApp
 import com.maodou.notify.R
 import com.maodou.notify.ui.MainActivity
+import com.maodou.notify.util.ThemeHelper
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -53,9 +56,49 @@ class MaodouWidgetProvider : AppWidgetProvider() {
             pi.send()
         }
 
+        /** 按用户设置的深浅模式给 RemoteViews 着色，避免与 App 内主题不一致。 */
+        private fun applyWidgetTheme(context: Context, views: RemoteViews, dark: Boolean, colorIndex: Int) {
+            views.setInt(
+                R.id.widget_root, "setBackgroundResource",
+                if (dark) R.drawable.widget_bg_dark else R.drawable.widget_bg_light
+            )
+            val text = ContextCompat.getColor(
+                context, if (dark) R.color.widget_text_dark else R.color.widget_text_light
+            )
+            val subtext = ContextCompat.getColor(
+                context, if (dark) R.color.widget_subtext_dark else R.color.widget_subtext_light
+            )
+            val accentRes = when (colorIndex.coerceIn(0..3)) {
+                1 -> if (dark) R.color.widget_accent_teal_dark else R.color.widget_accent_teal_light
+                2 -> if (dark) R.color.widget_accent_purple_dark else R.color.widget_accent_purple_light
+                3 -> if (dark) R.color.widget_accent_coral_dark else R.color.widget_accent_coral_light
+                else -> if (dark) R.color.widget_accent_dark else R.color.widget_accent_light
+            }
+            val accent = ContextCompat.getColor(context, accentRes)
+            val btnBg = if (dark) R.drawable.widget_btn_bg_dark else R.drawable.widget_btn_bg_light
+            views.setTextColor(R.id.widget_title, text)
+            views.setTextColor(R.id.widget_today, accent)
+            views.setTextColor(R.id.widget_today_label, subtext)
+            views.setTextColor(R.id.widget_filtered, accent)
+            views.setTextColor(R.id.widget_filtered_label, subtext)
+            views.setTextColor(R.id.widget_btn_history, accent)
+            views.setTextColor(R.id.widget_btn_toggle, accent)
+            views.setInt(R.id.widget_btn_history, "setBackgroundResource", btnBg)
+            views.setInt(R.id.widget_btn_toggle, "setBackgroundResource", btnBg)
+        }
+
         fun updateWidget(context: Context, mgr: AppWidgetManager, widgetId: Int) {
             val app = context.applicationContext as? MaodouApp ?: return
             val views = RemoteViews(context.packageName, R.layout.widget_maodou)
+            // 小部件运行在桌面进程，无法直接跟随 App 内强制的深浅模式，这里按用户设置显式着色
+            val systemDark = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                Configuration.UI_MODE_NIGHT_YES
+            val dark = when (app.prefs.themeMode) {
+                ThemeHelper.MODE_DARK -> true
+                ThemeHelper.MODE_LIGHT -> false
+                else -> systemDark
+            }
+            applyWidgetTheme(context, views, dark, app.prefs.themeColor)
 
             // 今日 00:00 起点
             val cal = Calendar.getInstance().apply {

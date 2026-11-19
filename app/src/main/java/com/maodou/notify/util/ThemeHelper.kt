@@ -1,6 +1,11 @@
 package com.maodou.notify.util
 
+import android.content.Context
+import androidx.annotation.AttrRes
+import androidx.annotation.ColorInt
+import androidx.annotation.ColorRes
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
 import com.maodou.notify.R
 
 /** FR-E6 多主题：深浅模式 + 多套配色的统一入口。 */
@@ -29,5 +34,19 @@ object ThemeHelper {
         2 -> R.style.Theme_MaodouNotify_Purple
         3 -> R.style.Theme_MaodouNotify_Coral
         else -> R.style.Theme_MaodouNotify
+    }
+
+    /**
+     * 读取当前主题下的语义色。用于代码动态创建的 View（如统计图表进度条），
+     * 避免写死颜色后在切换深浅模式或配色时出现错乱。
+     */
+    @ColorInt
+    fun resolveColor(context: Context, @AttrRes attr: Int, @ColorRes fallback: Int): Int {
+        val a = context.obtainStyledAttributes(intArrayOf(attr))
+        return try {
+            a.getColor(0, ContextCompat.getColor(context, fallback))
+        } finally {
+            a.recycle()
+        }
     }
 }

@@ -10,7 +10,6 @@ import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -62,16 +61,17 @@ class SettingsFragment : Fragment() {
 
         // 外观：深浅模式 + 配色（FR-E6），切换即时生效并记忆
         fun refreshThemeLabels() {
-            binding.tvThemeMode.text = getString(R.string.theme_mode_label, ThemeHelper.MODE_NAMES[prefs.themeMode.coerceIn(0..2)])
-            binding.tvThemeColor.text = getString(R.string.theme_color_label, ThemeHelper.COLOR_NAMES[prefs.themeColor.coerceIn(0..3)])
+            binding.tvThemeModeValue.text = getString(R.string.theme_mode_label, ThemeHelper.MODE_NAMES[prefs.themeMode.coerceIn(0..2)])
+            binding.tvThemeColorValue.text = getString(R.string.theme_color_label, ThemeHelper.COLOR_NAMES[prefs.themeColor.coerceIn(0..3)])
         }
         refreshThemeLabels()
         binding.tvThemeMode.setOnClickListener {
-            AlertDialog.Builder(requireContext())
+            MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.settings_appearance)
                 .setSingleChoiceItems(ThemeHelper.MODE_NAMES, prefs.themeMode.coerceIn(0..2)) { d, which ->
                     prefs.themeMode = which
                     ThemeHelper.applyNightMode(which)
+                    MaodouWidgetProvider.refreshAll(requireContext())
                     d.dismiss()
                     requireActivity().recreate()
                 }
@@ -79,10 +79,11 @@ class SettingsFragment : Fragment() {
                 .show()
         }
         binding.tvThemeColor.setOnClickListener {
-            AlertDialog.Builder(requireContext())
+            MaterialAlertDialogBuilder(requireContext())
                 .setTitle(getString(R.string.theme_color_label, ThemeHelper.COLOR_NAMES[prefs.themeColor.coerceIn(0..3)]))
                 .setSingleChoiceItems(ThemeHelper.COLOR_NAMES, prefs.themeColor.coerceIn(0..3)) { d, which ->
                     prefs.themeColor = which
+                    MaodouWidgetProvider.refreshAll(requireContext())
                     d.dismiss()
                     requireActivity().recreate()
                 }
@@ -135,7 +136,7 @@ class SettingsFragment : Fragment() {
         binding.btnExport.setOnClickListener {
             // FR-H6：导出前让用户选择筛选范围
             val ranges = arrayOf("全部", "近 7 天", "近 30 天")
-            AlertDialog.Builder(requireContext())
+            MaterialAlertDialogBuilder(requireContext())
                 .setTitle("导出范围")
                 .setItems(ranges) { _, which ->
                     exportDays = when (which) { 1 -> 7; 2 -> 30; else -> 0 }
@@ -200,7 +201,7 @@ class SettingsFragment : Fragment() {
     private fun showNumberPicker(title: String, current: Int, range: IntRange, onPick: (Int) -> Unit) {
         val values = (range.first..range.last).map { it.toString() }.toTypedArray()
         val start = current - range.first
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(title)
             .setSingleChoiceItems(values, start.coerceIn(0, values.size - 1)) { dialog, which ->
                 onPick(range.first + which)
@@ -222,7 +223,7 @@ class SettingsFragment : Fragment() {
                 val names = installed.map { it.first }.toTypedArray()
                 val current = app.prefs.excludedApps.split(",").toSet()
                 val checked = BooleanArray(installed.size) { i -> installed[i].second in current }
-                AlertDialog.Builder(requireContext())
+                MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.settings_exclude_apps)
                     .setMultiChoiceItems(names, checked) { _, which, isChecked -> checked[which] = isChecked }
                     .setPositiveButton(R.string.action_save) { _, _ ->

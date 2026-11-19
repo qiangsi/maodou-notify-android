@@ -105,7 +105,7 @@
     <string name="settings_permission_desc">毛豆通知需要读取通知栏通知才能工作。请在系统设置中开启「通知使用权」。</string>
     <string name="settings_post_notification">通知发送权限</string>
     <string name="settings_ai">离线 AI 骚扰过滤</string>
-    <string name="settings_ai_desc">在手机本地为每条通知打分，不上传任何内容</string>
+    <string name="settings_ai_desc">本地为每条通知打分，不上传任何内容</string>
     <string name="settings_ai_threshold">过滤阈值</string>
     <string name="settings_ai_threshold_value">骚扰概率 ≥ %1$d%% 自动过滤</string>
     <string name="settings_enhance">通知增强</string>
@@ -232,4 +232,9 @@
     <string name="widget_paused">已暂停</string>
     <string name="widget_active">过滤中</string>
     <string name="widget_today">今日通知</string>
+    <string name="rules_subtitle">按顺序匹配，命中第一条即执行</string>
+    <string name="stats_subtitle">近段时间的过滤效果与来源分布</string>
+    <string name="settings_filter">过滤</string>
+    <string name="rule_add">新建规则</string>
+    <string name="rule_condition">匹配条件</string>
 </resources>

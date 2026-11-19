@@ -3,11 +3,11 @@
     android:id="@+id/tv_date"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingStart="16dp"
-    android:paddingEnd="16dp"
+    android:paddingStart="18dp"
     android:paddingTop="14dp"
-    android:paddingBottom="6dp"
-    android:textSize="12sp"
+    android:paddingEnd="18dp"
+    android:paddingBottom="2dp"
+    android:textColor="@color/text_tertiary"
+    android:textSize="11.5sp"
     android:textStyle="bold"
-    android:textColor="@color/primary"
-    android:background="@color/background" />
+    android:letterSpacing="0.04" />

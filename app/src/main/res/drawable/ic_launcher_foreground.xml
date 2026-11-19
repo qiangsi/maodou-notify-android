@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <!-- 铃铛主体 -->
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- 柔和铃铛：留出安全区，避免被系统裁切 -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M54,30c-9.4,0 -17,7.6 -17,17v12l-6,9c-1.2,1.8 0.1,4 2.2,4h41.6c2.1,0 3.4,-2.2 2.2,-4l-6,-9V47c0,-9.4 -7.6,-17 -17,-17z" />
+        android:pathData="M54,31.5c-8.6,0 -15.6,7 -15.6,15.6v10.5l-4.3,7.2c-0.9,1.5 0.2,3.4 1.9,3.4h36c1.7,0 2.8,-1.9 1.9,-3.4l-4.3,-7.2V47.1C69.6,38.5 62.6,31.5 54,31.5z" />
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M47,76c0,3.9 3.1,7 7,7s7,-3.1 7,-7H47z" />
-    <!-- 斜杠：滤掉打扰 -->
+        android:pathData="M47.7,71.4c0,3.5 2.8,6.3 6.3,6.3s6.3,-2.8 6.3,-6.3H47.7z" />
+    <!-- 薄荷色勾选，表达“已过滤” -->
     <path
-        android:fillColor="#2B6CB0"
-        android:pathData="M30,84 L84,26 L88,30 L34,88 Z" />
+        android:fillColor="@android:color/transparent"
+        android:pathData="M47.8,56.4l4.6,4.6 9.4,-9.8"
+        android:strokeColor="#CFF3E6"
+        android:strokeWidth="4.6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
 </vector>

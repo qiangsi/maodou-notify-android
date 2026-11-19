@@ -1,43 +1,261 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent" android:layout_height="match_parent"
-    android:background="@color/background">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="vertical" android:padding="16dp">
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:clipToPadding="false">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/page_padding"
+        android:paddingTop="18dp"
+        android:paddingEnd="@dimen/page_padding"
+        android:paddingBottom="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/tab_stats"
+            android:textAppearance="@style/TextAppearance.Maodou.PageTitle" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/stats_subtitle"
+            android:textColor="@color/text_tertiary"
+            android:textSize="12sp" />
+
+        <!-- 关键指标 -->
         <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            
-            app:cardCornerRadius="10dp" app:cardElevation="1dp" app:cardBackgroundColor="@color/surface">
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="16dp">
-                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                    <TextView android:id="@+id/tv_total" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="24sp" android:textStyle="bold" android:textColor="@color/primary" android:text="0" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stats_total" android:textSize="12sp" android:textColor="@color/text_secondary" />
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            style="@style/Widget.Maodou.Card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tv_total"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textColor="?attr/colorPrimary"
+                        android:textSize="23sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/stats_total"
+                        android:textColor="@color/text_tertiary"
+                        android:textSize="11.5sp" />
                 </LinearLayout>
-                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                    <TextView android:id="@+id/tv_filtered" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="24sp" android:textStyle="bold" android:textColor="@color/badge_filtered_text" android:text="0" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stats_filtered" android:textSize="12sp" android:textColor="@color/text_secondary" />
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center_vertical"
+                    android:background="@color/divider" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tv_filtered"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textColor="@color/badge_filtered_text"
+                        android:textSize="23sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/stats_filtered"
+                        android:textColor="@color/text_tertiary"
+                        android:textSize="11.5sp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center_vertical"
+                    android:background="@color/divider" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tv_learned"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textColor="@color/badge_kept_text"
+                        android:textSize="23sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/stats_learned"
+                        android:textColor="@color/text_tertiary"
+                        android:textSize="11.5sp" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- 口径 / 窗口切换（FR-S1） -->
-        <com.google.android.material.chip.ChipGroup android:id="@+id/chip_scope" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="14dp" app:singleSelection="true">
-            <com.google.android.material.chip.Chip android:id="@+id/chip_scope_all" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stats_scope_all" android:checked="true" app:checkedIconVisible="false" />
-            <com.google.android.material.chip.Chip android:id="@+id/chip_scope_kept" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stats_scope_kept" app:checkedIconVisible="false" />
-            <com.google.android.material.chip.Chip android:id="@+id/chip_scope_filtered" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stats_scope_filtered" app:checkedIconVisible="false" />
-        </com.google.android.material.chip.ChipGroup>
-        <com.google.android.material.chip.ChipGroup android:id="@+id/chip_window" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" app:singleSelection="true">
-            <com.google.android.material.chip.Chip android:id="@+id/chip_7d" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stats_recent_7" android:checked="true" app:checkedIconVisible="false" />
-            <com.google.android.material.chip.Chip android:id="@+id/chip_30d" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stats_recent_30" app:checkedIconVisible="false" />
+        <!-- 统计窗口 -->
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_window"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            app:chipSpacingHorizontal="8dp"
+            app:singleLine="true"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_7d"
+                style="@style/Widget.Maodou.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/stats_recent_7" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_30d"
+                style="@style/Widget.Maodou.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/stats_recent_30" />
         </com.google.android.material.chip.ChipGroup>
 
-        <!-- 日报趋势（FR-S2） -->
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stats_daily" android:textSize="14sp" android:textStyle="bold" android:textColor="@color/text_primary" android:layout_marginTop="18dp" />
-        <LinearLayout android:id="@+id/daily_container" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="8dp" />
-        <TextView android:id="@+id/tv_learned" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:textSize="12sp" android:textColor="@color/text_secondary" />
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_scope"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:chipSpacingHorizontal="8dp"
+            app:singleLine="true"
+            app:singleSelection="true">
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stats_top_apps" android:textSize="14sp" android:textStyle="bold" android:textColor="@color/text_primary" android:layout_marginTop="20dp" />
-        <LinearLayout android:id="@+id/rank_container" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="8dp" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_scope_all"
+                style="@style/Widget.Maodou.Chip.Ghost"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/stats_scope_all" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_scope_kept"
+                style="@style/Widget.Maodou.Chip.Ghost"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/stats_scope_kept" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_scope_filtered"
+                style="@style/Widget.Maodou.Chip.Ghost"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/stats_scope_filtered" />
+        </com.google.android.material.chip.ChipGroup>
+
+        <!-- 每日趋势（FR-S2） -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            style="@style/Widget.Maodou.Card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/stats_daily"
+                    android:textAppearance="@style/TextAppearance.Maodou.CardTitle" />
+
+                <LinearLayout
+                    android:id="@+id/daily_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 应用排行（FR-S2） -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            style="@style/Widget.Maodou.Card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/stats_top_apps"
+                    android:textAppearance="@style/TextAppearance.Maodou.CardTitle" />
+
+                <LinearLayout
+                    android:id="@+id/rank_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="vertical" />
+
+                <TextView
+                    android:id="@+id/tv_rank_empty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="10dp"
+                    android:text="@string/stats_no_data"
+                    android:textColor="@color/text_tertiary"
+                    android:textSize="12.5sp"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 </ScrollView>
