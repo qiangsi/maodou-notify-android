@@ -1,9 +1,13 @@
 package com.maodou.notify.ui
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +23,7 @@ import com.maodou.notify.data.CryptoHelper
 import com.maodou.notify.databinding.FragmentSettingsBinding
 import com.maodou.notify.engine.ActionExecutor
 import com.maodou.notify.listener.MaodouWidgetProvider
+import com.maodou.notify.util.AppLockGuard
 import com.maodou.notify.util.AppLockHelper
 import com.maodou.notify.util.ThemeHelper
 import com.maodou.notify.util.isListenerEnabled
@@ -37,6 +42,7 @@ class SettingsFragment : Fragment() {
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
     private lateinit var app: MaodouApp
+    private var lockSwitchBusy = false
 
     private val exportLauncher = registerForActivityResult(
         ActivityResultContracts.CreateDocument("text/csv")
@@ -167,15 +173,61 @@ class SettingsFragment : Fragment() {
                 .show()
         }
 
-        // 应用锁（FR-E5）
+        // 应用锁（FR-E5）：开启需先验证身份，关闭立即生效，退后台/锁屏后重新验证
         binding.switchAppLock.isChecked = prefs.appLockEnabled
-        binding.switchAppLock.setOnCheckedChangeListener { _, c ->
-            if (c && !AppLockHelper.isDeviceCapable(requireContext())) {
-                binding.switchAppLock.isChecked = false
-                Toast.makeText(requireContext(), R.string.app_lock_no_device, Toast.LENGTH_SHORT).show()
+        binding.switchAppLock.setOnCheckedChangeListener { _, enable ->
+            if (lockSwitchBusy) return@setOnCheckedChangeListener
+            if (enable) {
+                if (!AppLockHelper.isDeviceCapable(requireContext())) {
+                    setLockSwitch(false)
+                    Toast.makeText(requireContext(), R.string.app_lock_no_device, Toast.LENGTH_SHORT).show()
+                    return@setOnCheckedChangeListener
+                }
+                AppLockHelper.prompt(requireActivity(), prefs,
+                    onSuccess = {
+                        prefs.appLockEnabled = true
+                        // 强制下次从后台回来时验证，而不是沿用刚才的解锁时间
+                        prefs.lastUnlockAt = 0L
+                        AppLockGuard.unlock()
+                        setLockSwitch(true)
+                        Toast.makeText(requireContext(), R.string.app_lock_on, Toast.LENGTH_SHORT).show()
+                    },
+                    onFail = {
+                        setLockSwitch(false)
+                        Toast.makeText(requireContext(), R.string.app_lock_canceled, Toast.LENGTH_SHORT).show()
+                    }
+                )
             } else {
-                prefs.appLockEnabled = c
-                if (c) prefs.lastUnlockAt = System.currentTimeMillis()
+                prefs.appLockEnabled = false
+                AppLockGuard.unlock()
+                Toast.makeText(requireContext(), R.string.app_lock_off, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        binding.btnLockNow.setOnClickListener {
+            if (!prefs.appLockEnabled) {
+                Toast.makeText(requireContext(), R.string.app_lock_need_enable, Toast.LENGTH_SHORT).show()
+            } else {
+                AppLockGuard.lockNow()
+                Toast.makeText(requireContext(), R.string.app_lock_locked, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        binding.btnBatteryOpt.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val pm = requireContext().getSystemService(PowerManager::class.java)
+                if (pm.isIgnoringBatteryOptimizations(requireContext().packageName)) {
+                    Toast.makeText(requireContext(), R.string.battery_whitelisted, Toast.LENGTH_SHORT).show()
+                } else {
+                    try {
+                        startActivity(Intent(
+                            Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                            Uri.parse("package:${requireContext().packageName}")
+                        ))
+                    } catch (e: ActivityNotFoundException) {
+                        Toast.makeText(requireContext(), R.string.battery_whitelist_failed, Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
         }
 
@@ -282,6 +334,12 @@ class SettingsFragment : Fragment() {
                 getString(R.string.settings_permission_status_on)
             else getString(R.string.settings_permission_status_off)
         }
+    }
+
+    private fun setLockSwitch(checked: Boolean) {
+        lockSwitchBusy = true
+        binding.switchAppLock.isChecked = checked
+        lockSwitchBusy = false
     }
 
     override fun onDestroyView() {

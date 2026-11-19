@@ -3,7 +3,7 @@
 依据 PRD《毛豆通知 v0.1》实现的 Android 原生通知管家：**把每条通知存进可搜索的本地历史，用离线 AI 挡骚扰，其余交给自定义规则**。
 
 - **技术栈**：Kotlin + Jetpack Room + Material 3 + 协程 + ViewBinding
-- **版本**：**v1.3.0**（versionCode 4）· 视觉重制版 · 最低 Android 8.0（API 26），目标 Android 15（API 35）
+- **版本**：**v1.3.1**（versionCode 5）· 视觉重制 + 应用锁/保活修复 · 最低 Android 8.0（API 26），目标 Android 15（API 35）
 - **隐私**：通知内容 AES-256-GCM 加密存本地（密钥在 Android Keystore），零上传；唯一外发通道是用户显式配置的 Webhook
 - **构建**：JDK 17 + Gradle 8.14 + Android SDK 35，`gradle assembleDebug` 已真实编译通过（BUILD SUCCESSFUL）
 
@@ -21,6 +21,13 @@
 - **弹窗**：统一走 `ThemeOverlay.Maodou.Dialog`，表面色与页面一致，单选点为主色，不再出现 Material 默认的偏色底。
 
 ## 更新记录
+
+### v1.3.1 · 应用锁与保活修复（2026-11-19）
+- 修复应用锁开关「点了没反应」：开启时先验证身份，成功后强制下次从后台返回时验证；关闭即时生效并有提示。
+- 应用锁改为全局守卫：任何页面回到前台、应用退到后台或屏幕关闭都会重新上锁；验证取消退回后台而非直接结束主页。
+- 设置页新增「立即锁定」和「电池优化白名单」入口。
+- 保活增强：任务被划掉后尝试立即重启前台服务，并新增 15 分钟周期 JobScheduler 看门狗；开机/升级后自动排期。
+- 注意：原生 Android 不允许第三方应用阻止自己从最近任务中被划掉；加入电池优化白名单可显著降低进程被清理概率。
 
 ### v1.3.0 · 视觉重制（2026-11-19）
 - 统一设计令牌：间距/圆角/字号/组件尺寸集中到 `dimens.xml`；卡片 18dp 圆角 + 1dp 发丝描边、无投影。
@@ -54,7 +61,7 @@
 
 ---
 
-## 二、已实现功能 ↔ PRD 编号映射（v1.3.0：30/30 全覆盖）
+## 二、已实现功能 ↔ PRD 编号映射（v1.3.1：30/30 全覆盖）
 
 ### V1.0（MVP）
 | 编号 | 功能 | 实现位置 |
@@ -135,5 +142,5 @@ app/src/main/
 
 ## 五、验证记录
 - 构建：JDK 17 + Gradle 8.14 + SDK 35，`gradle assembleDebug` **BUILD SUCCESSFUL**（2026-11-19）
-- APK：`com.maodou.notify` v1.3.0（versionCode 4），v2 签名校验通过，minSdk 26 / targetSdk 35，6.5MB
+- APK：`com.maodou.notify` v1.3.1（versionCode 5），v2 签名校验通过，minSdk 26 / targetSdk 35，6.5MB
 - 小部件 receiver 已注册（aapt 校验 Manifest 含 `MaodouWidgetProvider` + `APPWIDGET_UPDATE`）

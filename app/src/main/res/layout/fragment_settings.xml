@@ -696,6 +696,49 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
                 </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="62dp"
+                    android:background="@color/divider" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_lock_now"
+                    style="@style/Widget.Maodou.RowButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/row_height"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="@string/settings_lock_now"
+                    app:icon="@drawable/ic_lock"
+                    app:iconTint="?attr/colorPrimary" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="62dp"
+                    android:background="@color/divider" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_battery_opt"
+                    style="@style/Widget.Maodou.RowButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/row_height"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="@string/settings_battery_opt"
+                    app:icon="@drawable/ic_battery"
+                    app:iconTint="?attr/colorPrimary" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="62dp"
+                    android:layout_marginBottom="12dp"
+                    android:text="@string/settings_battery_opt_desc"
+                    android:textColor="@color/text_tertiary"
+                    android:textSize="12sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

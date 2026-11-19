@@ -12,7 +12,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maodou.notify.R
 import com.maodou.notify.MaodouApp
 import com.maodou.notify.databinding.ActivityMainBinding
-import com.maodou.notify.util.AppLockHelper
 import com.maodou.notify.util.ThemeHelper
 import com.maodou.notify.util.hasPostNotificationPermission
 import com.maodou.notify.util.isListenerEnabled
@@ -42,18 +41,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         checkPermissions()
-        checkAppLock()
-    }
-
-    /** 应用锁（FR-E5）：回到前台且超过有效期时验证 */
-    private fun checkAppLock() {
-        val app = application as MaodouApp
-        if (AppLockHelper.shouldPrompt(app.prefs)) {
-            AppLockHelper.prompt(this, app.prefs,
-                onSuccess = { /* 验证通过，正常使用 */ },
-                onFail = { finish() } // 验证失败/取消则不进入应用
-            )
-        }
     }
 
     private fun switchFragment(fragment: Fragment) {
@@ -101,7 +88,6 @@ class MainActivity : AppCompatActivity() {
                 .show()
             prefs.pendingMissedSince = 0L
         }
-        checkAppLock()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {

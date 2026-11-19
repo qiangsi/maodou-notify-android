@@ -237,4 +237,14 @@
     <string name="settings_filter">过滤</string>
     <string name="rule_add">新建规则</string>
     <string name="rule_condition">匹配条件</string>
+    <string name="settings_lock_now">立即锁定</string>
+    <string name="settings_battery_opt">电池优化白名单</string>
+    <string name="settings_battery_opt_desc">加入白名单可显著降低后台被清理的概率</string>
+    <string name="app_lock_on">应用锁已开启，离开应用后再次进入需要验证</string>
+    <string name="app_lock_off">应用锁已关闭</string>
+    <string name="app_lock_canceled">已取消验证，应用锁未开启</string>
+    <string name="app_lock_locked">已锁定，再次进入需验证</string>
+    <string name="app_lock_need_enable">请先开启应用锁</string>
+    <string name="battery_whitelisted">已在电池优化白名单中</string>
+    <string name="battery_whitelist_failed">无法打开系统设置，请手动添加白名单</string>
 </resources>
