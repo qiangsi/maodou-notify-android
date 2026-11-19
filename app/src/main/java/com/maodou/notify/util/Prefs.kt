@@ -104,6 +104,39 @@ class Prefs(context: Context) {
         get() = sp.getString(KEY_APP_LOCK_PIN_SALT, "") ?: ""
         set(value) = sp.edit().putString(KEY_APP_LOCK_PIN_SALT, value).apply()
 
+    // —— v1.4.0 应用锁增强：离开时长 / 解锁方式 / 备用恢复 ——
+    /**
+     * 离开应用多久后重新进入才验证，单位毫秒。
+     * 0 = 每次进入都验证（老行为）；15000 / 60000 / 180000 = 15秒 / 1分钟 / 3分钟。
+     */
+    var appLockAwayMs: Long
+        get() = sp.getLong(KEY_APP_LOCK_AWAY_MS, 0L)
+        set(value) = sp.edit().putLong(KEY_APP_LOCK_AWAY_MS, value).apply()
+
+    /** 解锁方式：0=PIN/密码 1=生物识别(指纹/人脸) 2=两者皆可(默认) */
+    var appLockMethod: Int
+        get() = sp.getInt(KEY_APP_LOCK_METHOD, 2)
+        set(value) = sp.edit().putInt(KEY_APP_LOCK_METHOD, value).apply()
+
+    /** 退到后台的时刻（毫秒），离开时长判定由 AppLockPolicy 负责 */
+    var lastBackgroundAt: Long
+        get() = sp.getLong(KEY_LAST_BACKGROUND_AT, 0L)
+        set(value) = sp.edit().putLong(KEY_LAST_BACKGROUND_AT, value).apply()
+
+    /** 备用恢复答案的加盐哈希：忘记 PIN 时凭安全问题重置，避免启用后无法恢复 */
+    var recoveryHash: String
+        get() = sp.getString(KEY_RECOVERY_HASH, "") ?: ""
+        set(value) = sp.edit().putString(KEY_RECOVERY_HASH, value).apply()
+
+    var recoverySalt: String
+        get() = sp.getString(KEY_RECOVERY_SALT, "") ?: ""
+        set(value) = sp.edit().putString(KEY_RECOVERY_SALT, value).apply()
+
+    /** 备用恢复问题的索引（对应 LockRecovery.QUESTIONS），-1=未设置 */
+    var recoveryQuestionIndex: Int
+        get() = sp.getInt(KEY_RECOVERY_QUESTION, -1)
+        set(value) = sp.edit().putInt(KEY_RECOVERY_QUESTION, value).apply()
+
     // —— FR-A3 离线学习调度 ——
     var aiLearnOnlyCharging: Boolean
         get() = sp.getBoolean(KEY_AI_LEARN_CHARGING, true)
@@ -166,6 +199,12 @@ class Prefs(context: Context) {
         private const val KEY_LISTENER_CONNECTED_AT = "listener_connected_at"
         private const val KEY_APP_LOCK_PIN_HASH = "app_lock_pin_hash"
         private const val KEY_APP_LOCK_PIN_SALT = "app_lock_pin_salt"
+        private const val KEY_APP_LOCK_AWAY_MS = "app_lock_away_ms"
+        private const val KEY_APP_LOCK_METHOD = "app_lock_method"
+        private const val KEY_LAST_BACKGROUND_AT = "last_background_at"
+        private const val KEY_RECOVERY_HASH = "recovery_hash"
+        private const val KEY_RECOVERY_SALT = "recovery_salt"
+        private const val KEY_RECOVERY_QUESTION = "recovery_question_index"
         private const val KEY_AI_LEARN_CHARGING = "ai_learn_charging"
         private const val KEY_LAST_LEARN = "last_learn_at"
         private const val KEY_FIRST_RUN = "first_run_at"

@@ -13,16 +13,15 @@ import com.maodou.notify.MaodouApp
 import java.lang.ref.WeakReference
 
 /**
- * FR-E5 应用锁的全局守卫。
+ * 应用锁的全局生命周期守卫。
  *
- * 之前只在 MainActivity 的 onResume 检查一次，而且打开开关时把 lastUnlockAt
- * 设为当前时间，导致有效期内切换完全没反应；详情页/编辑页、切后台和锁屏也没有拦截。
- * 现在改为：应用退到后台或屏幕关闭立即上锁，任何 Activity 回到前台都统一验证。
+ * 职责边界（v1.4.0 重构）：
+ * - 只负责采集「离开/回来」的生命周期事件，并记录离开时刻；
+ * - 「该不该验证」完全委托给 [AppLockPolicy]；
+ * - 「怎么验证」完全委托给 [AppLockHelper]。
+ * 三者解耦，离开时长、解锁方式的变化都不需要改动本类。
  */
 object AppLockGuard {
-
-    @Volatile
-    var locked = false
 
     private var resumedCount = 0
     private var current: WeakReference<FragmentActivity>? = null
@@ -31,10 +30,9 @@ object AppLockGuard {
 
     /** 由 MaodouApp 在 Application.onCreate 注册 */
     fun install(context: Context) {
-        locked = MaodouApp.instance.prefs.appLockEnabled
         context.registerReceiver(object : BroadcastReceiver() {
             override fun onReceive(c: Context, intent: Intent) {
-                if (intent.action == Intent.ACTION_SCREEN_OFF) lockIfEnabled()
+                if (intent.action == Intent.ACTION_SCREEN_OFF) onLeaveApp()
             }
         }, IntentFilter(Intent.ACTION_SCREEN_OFF))
     }
@@ -42,8 +40,7 @@ object AppLockGuard {
     fun onActivityResumed(activity: Activity) {
         if (activity is FragmentActivity) current = WeakReference(activity)
         resumedCount++
-        // ActivityLifecycleCallbacks 触发时生命周期状态可能还没切到 RESUMED，
-        // 延后一帧再判断，避免冷启动时漏掉验证。
+        // 生命周期回调触发时状态可能还没切到 RESUMED，延后一帧再判断，避免冷启动漏验证
         mainHandler.post { maybePrompt() }
     }
 
@@ -53,50 +50,47 @@ object AppLockGuard {
 
     fun onActivityStopped() {
         // 所有页面都停下来才算真正退到后台；页面间跳转时 resumedCount 仍为 1
-        if (resumedCount == 0) lockIfEnabled()
+        if (resumedCount == 0) onLeaveApp()
     }
 
-    fun lockIfEnabled() {
+    /** 离开应用：记录离开时刻，供策略按配置时长判定 */
+    private fun onLeaveApp() {
         try {
-            if (MaodouApp.instance.prefs.appLockEnabled) locked = true
+            AppLockPolicy.markBackground(MaodouApp.instance.prefs)
         } catch (e: Exception) {
             // Application 尚未初始化完成，忽略
         }
     }
 
-    /** 设置页点击「立即锁定」 */
+    /** 设置页点击「立即锁定」：强制下次进入验证 */
     fun lockNow() {
-        if (!MaodouApp.instance.prefs.appLockEnabled) return
-        locked = true
+        val prefs = MaodouApp.instance.prefs
+        if (!prefs.appLockEnabled) return
+        AppLockPolicy.forceLock(prefs)
+        prompting = false
         mainHandler.post { maybePrompt() }
     }
 
     /** 验证成功或关闭应用锁时调用 */
     fun unlock() {
-        locked = false
         prompting = false
     }
 
     private fun maybePrompt() {
         val activity = current?.get() ?: return
-        if (prompting || !locked) return
+        if (prompting) return
         val prefs = MaodouApp.instance.prefs
-        if (!prefs.appLockEnabled) {
-            locked = false
+        if (!AppLockPolicy.needsVerification(prefs)) {
+            // 未超时或应用锁关闭：不打扰
             return
         }
-        // 双保险：进程重启后 locked 标志可能还没来得及置位，用解锁时间兜底
-        val timeoutMs = prefs.appLockTimeoutMin.coerceIn(0, 240) * 60_000L
-        val expired = System.currentTimeMillis() - prefs.lastUnlockAt > timeoutMs
-        if (!locked && !expired) return
-        locked = true
         if (!activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return
 
         prompting = true
         AppLockHelper.prompt(activity, prefs,
             onSuccess = {
+                AppLockPolicy.markVerified(prefs)
                 prompting = false
-                unlock()
             },
             onFail = {
                 prompting = false

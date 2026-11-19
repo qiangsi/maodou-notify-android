@@ -59,4 +59,6 @@
     <!-- FAB 固定使用较深底色，保证白色图标在深浅模式下对比度一致 -->
     <color name="fab_bg">#3F6CB4</color>
     <color name="switch_off">#3B4757</color>
+    <!-- 次级可点击文字（深色） -->
+    <color name="text_link">#A9C6FF</color>
 </resources>

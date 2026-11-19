@@ -1,89 +1,130 @@
 package com.maodou.notify.util
 
 import android.content.Context
+import android.text.InputType
+import android.text.method.PasswordTransformationMethod
 import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
-import androidx.biometric.BiometricPrompt.ERROR_LOCKOUT
-import androidx.biometric.BiometricPrompt.ERROR_LOCKOUT_PERMANENT
-import androidx.biometric.BiometricPrompt.ERROR_NEGATIVE_BUTTON
-import androidx.biometric.BiometricPrompt.ERROR_USER_CANCELED
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maodou.notify.R
 
-/** FR-E5：应用锁。支持自设 PIN（主）与系统指纹/锁屏密码（可选）。带有效期缓存。 */
+/**
+ * FR-E5 应用锁验证编排（v1.4.0）。
+ *
+ * 职责：根据用户在设置页选择的解锁方式（PIN / 生物识别 / 两者皆可）分发到对应验证流程，
+ * 并提供「忘记密码 → 安全问题验证 → 重置 PIN」的恢复闭环。
+ * 不负责「何时需要验证」（由 [AppLockPolicy] 决定），也不负责生命周期（由 AppLockGuard 负责）。
+ */
 object AppLockHelper {
 
-    fun isBiometricCapable(context: Context): Boolean {
-        return try {
-            BiometricManager.from(context).canAuthenticate(
-                BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
-            ) == BiometricManager.BIOMETRIC_SUCCESS
-        } catch (e: Exception) {
-            false
-        }
+    const val METHOD_PIN = 0
+    const val METHOD_BIOMETRIC = 1
+    const val METHOD_BOTH = 2
+
+    fun isBiometricCapable(context: Context): Boolean = try {
+        BiometricManager.from(context).canAuthenticate(
+            BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
+        ) == BiometricManager.BIOMETRIC_SUCCESS
+    } catch (e: Exception) {
+        false
     }
 
-    /** 是否需要验证：开关开启 且 距上次解锁超过有效期 */
-    fun shouldPrompt(prefs: Prefs): Boolean {
-        if (!prefs.appLockEnabled) return false
-        val timeoutMs = prefs.appLockTimeoutMin.coerceIn(0, 240) * 60_000L
-        return System.currentTimeMillis() - prefs.lastUnlockAt > timeoutMs
-    }
+    /** 兼容旧调用：是否需要验证，实际判定请以 AppLockPolicy 为准。 */
+    fun shouldPrompt(prefs: Prefs): Boolean = AppLockPolicy.needsVerification(prefs)
 
-    /**
-     * 统一验证入口：若已设置 PIN 走 PIN 对话框，并提供「改用指纹/锁屏密码」按钮；
-     * 未设置 PIN 但设备支持生物识别时回退到系统验证。
-     */
+    /** 统一验证入口。按用户选择的方式分发，任何方式缺失时安全降级，绝不误放行。 */
     fun prompt(
         activity: FragmentActivity,
         prefs: Prefs,
         onSuccess: () -> Unit,
         onFail: () -> Unit
     ) {
-        if (PinHelper.hasPin(prefs)) {
-            promptPin(activity, prefs, onSuccess, onFail)
-        } else if (isBiometricCapable(activity)) {
-            promptBiometric(activity, prefs, onSuccess, onFail)
-        } else {
-            // 既没 PIN 也没有生物识别能力：无法验证，按失败处理（不会误放行）
-            onFail()
+        val hasPin = PinHelper.hasPin(prefs)
+        when (prefs.appLockMethod) {
+            METHOD_PIN -> {
+                if (hasPin) promptPin(activity, prefs, onSuccess, onFail)
+                else if (isBiometricCapable(activity)) promptBiometric(activity, prefs, onSuccess, onFail)
+                else onFail()
+            }
+            METHOD_BIOMETRIC -> {
+                if (isBiometricCapable(activity)) promptBiometric(activity, prefs, onSuccess, onFail)
+                else if (hasPin) promptPin(activity, prefs, onSuccess, onFail)
+                else onFail()
+            }
+            else -> { // METHOD_BOTH
+                when {
+                    hasPin -> promptPin(activity, prefs, onSuccess, onFail)
+                    isBiometricCapable(activity) -> promptBiometric(activity, prefs, onSuccess, onFail)
+                    else -> onFail()
+                }
+            }
         }
     }
 
-    /** PIN 验证对话框：输错可重试，点取消按失败处理 */
+    /** PIN 验证对话框：输错可重试，含「忘记密码」恢复入口。 */
     private fun promptPin(
         activity: FragmentActivity,
         prefs: Prefs,
         onSuccess: () -> Unit,
         onFail: () -> Unit
     ) {
-        val input = EditText(activity).apply {
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER
-            transformationMethod = android.text.method.PasswordTransformationMethod.getInstance()
-            hint = activity.getString(R.string.app_lock_pin_set_hint)
-            setSingleLine(true)
+        val input = pinField(activity, R.string.app_lock_pin_verify_title)
+        var dialogRef: android.app.Dialog? = null
+        // 用一个垂直容器放输入框 + 两个次级入口，避免占用对话框三个按钮位
+        val extras = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+        val canBiometric = isBiometricCapable(activity)
+        if (canBiometric) {
+            val link = TextView(activity).apply {
+                text = activity.getString(R.string.app_lock_use_biometric)
+                setTextColor(activity.getColor(R.color.text_link))
+                textSize = 13f
+                setPadding(0, 12, 0, 0)
+                setOnClickListener {
+                    // 由调用方在对话框外重新发起生物识别；此处先关闭当前对话框
+                    dialogRef?.dismiss()
+                    promptBiometric(activity, prefs, onSuccess, onFail)
+                }
+            }
+            extras.addView(link)
         }
-        val pad = (16 * activity.resources.displayMetrics.density).toInt()
-        input.setPadding(pad, pad / 2, pad, pad / 2)
-
+        if (LockRecovery.hasRecovery(prefs)) {
+            val link = TextView(activity).apply {
+                text = activity.getString(R.string.app_lock_forgot_pin)
+                setTextColor(activity.getColor(R.color.text_link))
+                textSize = 13f
+                setPadding(0, 12, 0, 0)
+                setOnClickListener {
+                    dialogRef?.dismiss()
+                    showRecovery(activity, prefs, onSuccess, onFail)
+                }
+            }
+            extras.addView(link)
+        }
+        val box = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(input)
+            if (extras.childCount > 0) addView(extras)
+        }
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.app_lock_pin_verify_title)
-            .setView(input)
+            .setView(box)
             .setCancelable(false)
-            .setPositiveButton(R.string.action_ok, null) // 下面覆写，校验失败不关闭
+            .setPositiveButton(R.string.action_ok, null)
             .setNegativeButton(R.string.action_cancel, null)
             .create()
-
+        dialogRef = dialog
         dialog.setOnShowListener {
             dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val pin = input.text.toString().trim()
                 when {
-                    pin.isEmpty() -> input.error = activity.getString(R.string.app_lock_pin_empty)
-                    PinHelper.verify(prefs, pin) -> {
-                        prefs.lastUnlockAt = System.currentTimeMillis()
+                    input.text.toString().trim().isEmpty() ->
+                        input.error = activity.getString(R.string.app_lock_pin_empty)
+                    PinHelper.verify(prefs, input.text.toString().trim()) -> {
                         dialog.dismiss()
                         onSuccess()
                     }
@@ -93,17 +134,117 @@ object AppLockHelper {
                     }
                 }
             }
-            // 提供切换到系统生物识别的入口（设备支持时）
-            if (isBiometricCapable(activity)) {
-                dialog.setButton(android.app.AlertDialog.BUTTON_NEUTRAL,
-                    activity.getString(R.string.app_lock_use_biometric)) { _, _ ->
-                    dialog.dismiss()
-                    promptBiometric(activity, prefs, onSuccess, onFail)
-                }
-            }
         }
         dialog.setOnCancelListener { onFail() }
         dialog.show()
+    }
+
+    /** 备用恢复：先验证安全问题答案（或生物识别），通过后重置 PIN。 */
+    private fun showRecovery(
+        activity: FragmentActivity,
+        prefs: Prefs,
+        onSuccess: () -> Unit,
+        onFail: () -> Unit
+    ) {
+        if (LockRecovery.hasRecovery(prefs)) {
+            showSecurityQuestion(activity, prefs, onSuccess, onFail)
+        } else if (isBiometricCapable(activity)) {
+            // 未设置安全问题时，允许用系统生物识别作为恢复凭证
+            MaterialAlertDialogBuilder(activity)
+                .setTitle(R.string.recovery_title)
+                .setMessage(R.string.recovery_no_question_biometric)
+                .setPositiveButton(R.string.recovery_use_biometric) { _, _ ->
+                    promptBiometric(activity, prefs,
+                        onSuccess = { showSetPinThen(activity, prefs, onSuccess, onFail) },
+                        onFail = onFail)
+                }
+                .setNegativeButton(R.string.action_cancel) { _, _ -> onFail() }
+                .setCancelable(false)
+                .show()
+        } else {
+            MaterialAlertDialogBuilder(activity)
+                .setTitle(R.string.recovery_title)
+                .setMessage(R.string.recovery_impossible)
+                .setPositiveButton(R.string.action_ok, null)
+                .setCancelable(true)
+                .show()
+        }
+    }
+
+    private fun showSecurityQuestion(
+        activity: FragmentActivity,
+        prefs: Prefs,
+        onSuccess: () -> Unit,
+        onFail: () -> Unit
+    ) {
+        val idx = prefs.recoveryQuestionIndex
+        val answer = pinField(activity, R.string.recovery_answer_hint, numeric = false)
+        MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.recovery_title)
+            .setMessage(activity.getString(R.string.recovery_question_prompt, activity.getString(LockRecovery.QUESTIONS[idx.coerceIn(LockRecovery.QUESTIONS.indices)])))
+            .setView(answer)
+            .setCancelable(false)
+            .setPositiveButton(R.string.action_ok, null)
+            .setNegativeButton(R.string.action_cancel) { _, _ -> onFail() }
+            .create().apply {
+                setOnShowListener {
+                    getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                        val text = answer.text.toString()
+                        if (text.trim().isEmpty()) {
+                            answer.error = activity.getString(R.string.recovery_answer_empty)
+                        } else if (LockRecovery.verify(prefs, text)) {
+                            dismiss()
+                            showSetPinThen(activity, prefs, onSuccess, onFail)
+                        } else {
+                            answer.error = activity.getString(R.string.recovery_answer_wrong)
+                            answer.text?.clear()
+                        }
+                    }
+                }
+                show()
+            }
+    }
+
+    /** 恢复验证通过后，让用户设置新 PIN，成功后视为本次验证完成。 */
+    private fun showSetPinThen(
+        activity: FragmentActivity,
+        prefs: Prefs,
+        onSuccess: () -> Unit,
+        onFail: () -> Unit
+    ) {
+        val first = pinField(activity, R.string.app_lock_pin_set_hint)
+        val second = pinField(activity, R.string.app_lock_pin_confirm_hint)
+        val box = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(first)
+            addView(second)
+        }
+        MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.app_lock_pin_set_title)
+            .setMessage(R.string.recovery_reset_pin_hint)
+            .setView(box)
+            .setCancelable(false)
+            .setPositiveButton(R.string.action_ok, null)
+            .setNegativeButton(R.string.action_cancel) { _, _ -> onFail() }
+            .create().apply {
+                setOnShowListener {
+                    getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                        when {
+                            !PinHelper.isValidFormat(first.text.toString()) ->
+                                first.error = activity.getString(R.string.app_lock_pin_invalid)
+                            first.text.toString() != second.text.toString() ->
+                                second.error = activity.getString(R.string.app_lock_pin_mismatch)
+                            else -> {
+                                PinHelper.setPin(prefs, first.text.toString())
+                                dismiss()
+                                Toast.makeText(activity, R.string.app_lock_pin_set_done, Toast.LENGTH_SHORT).show()
+                                onSuccess()
+                            }
+                        }
+                    }
+                }
+                show()
+            }
     }
 
     private fun promptBiometric(
@@ -114,13 +255,8 @@ object AppLockHelper {
     ) {
         val executor = ContextCompat.getMainExecutor(activity)
         val callback = object : BiometricPrompt.AuthenticationCallback() {
-            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                prefs.lastUnlockAt = System.currentTimeMillis()
-                onSuccess()
-            }
-            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                onFail()
-            }
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) = onSuccess()
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) = onFail()
             override fun onAuthenticationFailed() { /* 单次失败不关闭，继续重试 */ }
         }
         try {
@@ -137,4 +273,14 @@ object AppLockHelper {
             onFail()
         }
     }
+
+    private fun pinField(activity: Context, hintRes: Int, numeric: Boolean = true): EditText =
+        EditText(activity).apply {
+            inputType = if (numeric) InputType.TYPE_CLASS_NUMBER else InputType.TYPE_CLASS_TEXT
+            if (numeric) transformationMethod = PasswordTransformationMethod.getInstance()
+            hint = activity.getString(hintRes)
+            setSingleLine(true)
+            val pad = (16 * activity.resources.displayMetrics.density).toInt()
+            setPadding(pad, pad / 2, pad, pad / 2)
+        }
 }

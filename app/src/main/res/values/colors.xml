@@ -77,4 +77,6 @@
     <color name="widget_accent_coral_light">#D46A43</color>
     <color name="widget_accent_coral_dark">#F2A883</color>
     <color name="switch_off">#DFE4EC</color>
+    <!-- 次级可点击文字（浅色） -->
+    <color name="text_link">#4B76C0</color>
 </resources>

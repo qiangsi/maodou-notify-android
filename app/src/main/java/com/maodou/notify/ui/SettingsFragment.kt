@@ -28,6 +28,8 @@ import com.maodou.notify.listener.MaodouWidgetProvider
 import com.maodou.notify.listener.NotificationMonitorService
 import com.maodou.notify.util.AppLockGuard
 import com.maodou.notify.util.AppLockHelper
+import com.maodou.notify.util.AppLockPolicy
+import com.maodou.notify.util.LockRecovery
 import com.maodou.notify.util.PinHelper
 import com.maodou.notify.util.ThemeHelper
 import com.maodou.notify.util.isListenerEnabled
@@ -227,7 +229,9 @@ class SettingsFragment : Fragment() {
                 }
             } else {
                 prefs.appLockEnabled = false
+                AppLockPolicy.clear(prefs)
                 AppLockGuard.unlock()
+                refreshLockConfig()
                 Toast.makeText(requireContext(), R.string.app_lock_off, Toast.LENGTH_SHORT).show()
             }
         }
@@ -261,6 +265,14 @@ class SettingsFragment : Fragment() {
             )
         }
 
+        // v1.4.0：应用锁的离开时长 / 解锁方式 / 备用恢复
+        bindLockConfig()
+
+        // v1.4.0：设置页底部小字入口
+        binding.entryUpdate.setOnClickListener { openUpdatePage() }
+        binding.entryAbout.setOnClickListener { showAboutDialog() }
+        binding.entryFeedback.setOnClickListener { openFeedbackPage() }
+
         binding.btnBatteryOpt.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 val pm = requireContext().getSystemService(PowerManager::class.java)
@@ -293,6 +305,40 @@ class SettingsFragment : Fragment() {
                 }
                 .setNegativeButton(R.string.action_cancel, null)
                 .show()
+        }
+    }
+
+    /** 更新版本：优先打开 GitHub Release 页面，失败则提示手动查看 */
+    private fun openUpdatePage() {
+        val url = "https://github.com/qiangsi/maodou-notify-android/releases"
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(requireContext(), R.string.entry_update_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /** 关于：版本、隐私说明与项目地址 */
+    private fun showAboutDialog() {
+        val version = try {
+            requireContext().packageManager.getPackageInfo(requireContext().packageName, 0).versionName
+        } catch (e: Exception) {
+            "1.4.0"
+        }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.entry_about)
+            .setMessage(getString(R.string.about_message, version))
+            .setPositiveButton(R.string.action_ok, null)
+            .show()
+    }
+
+    /** 意见反馈：打开 GitHub Issues 页面 */
+    private fun openFeedbackPage() {
+        val url = "https://github.com/qiangsi/maodou-notify-android/issues/new"
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(requireContext(), R.string.entry_feedback_failed, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -404,11 +450,137 @@ class SettingsFragment : Fragment() {
 
     private fun enableAppLock(prefs: com.maodou.notify.util.Prefs) {
         prefs.appLockEnabled = true
-        // 强制下次从后台回来时验证，而不是沿用刚才的解锁时间
-        prefs.lastUnlockAt = 0L
+        // 清除残留的离开记录，避免刚开启就因旧时间戳立即验证
+        AppLockPolicy.clear(prefs)
         AppLockGuard.unlock()
         setLockSwitch(true)
+        refreshLockConfig()
         Toast.makeText(requireContext(), R.string.app_lock_on, Toast.LENGTH_SHORT).show()
+    }
+
+    /** 刷新应用锁三项配置（离开时长 / 解锁方式 / 备用恢复）的显示与可用性 */
+    private fun refreshLockConfig() {
+        if (_binding == null) return
+        val enabled = app.prefs.appLockEnabled
+        binding.rowLockAway.isEnabled = enabled
+        binding.rowLockMethod.isEnabled = enabled
+        binding.rowLockRecovery.isEnabled = enabled
+        binding.tvLockAwayValue.text = awayLabel(app.prefs.appLockAwayMs)
+        binding.tvLockMethodValue.text = methodLabel(app.prefs.appLockMethod)
+        binding.tvLockRecoveryValue.text = getString(
+            if (LockRecovery.hasRecovery(app.prefs)) R.string.lock_recovery_set
+            else R.string.lock_recovery_unset
+        )
+    }
+
+    private fun awayLabel(ms: Long): String = getString(
+        when (ms) {
+            15_000L -> R.string.lock_away_15s
+            60_000L -> R.string.lock_away_1min
+            180_000L -> R.string.lock_away_3min
+            else -> R.string.lock_away_always
+        }
+    )
+
+    private fun methodLabel(method: Int): String = getString(
+        when (method) {
+            AppLockHelper.METHOD_PIN -> R.string.lock_method_pin
+            AppLockHelper.METHOD_BIOMETRIC -> R.string.lock_method_biometric
+            else -> R.string.lock_method_both
+        }
+    )
+
+    /** 应用锁三项配置的选择器：离开时长、解锁方式、备用恢复 */
+    private fun bindLockConfig() {
+        refreshLockConfig()
+
+        binding.rowLockAway.setOnClickListener {
+            if (!app.prefs.appLockEnabled) return@setOnClickListener
+            val values = longArrayOf(0L, 15_000L, 60_000L, 180_000L)
+            val labels = arrayOf(
+                getString(R.string.lock_away_always), getString(R.string.lock_away_15s),
+                getString(R.string.lock_away_1min), getString(R.string.lock_away_3min)
+            )
+            val cur = values.indexOf(app.prefs.appLockAwayMs).coerceAtLeast(0)
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.lock_away_title)
+                .setSingleChoiceItems(labels, cur) { d, which ->
+                    app.prefs.appLockAwayMs = values[which]
+                    refreshLockConfig()
+                    d.dismiss()
+                }
+                .setNegativeButton(R.string.action_cancel, null)
+                .show()
+        }
+
+        binding.rowLockMethod.setOnClickListener {
+            if (!app.prefs.appLockEnabled) return@setOnClickListener
+            val labels = arrayOf(
+                getString(R.string.lock_method_pin),
+                getString(R.string.lock_method_biometric),
+                getString(R.string.lock_method_both)
+            )
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.lock_method_title)
+                .setSingleChoiceItems(labels, app.prefs.appLockMethod.coerceIn(0..2)) { d, which ->
+                    if (which == AppLockHelper.METHOD_BIOMETRIC && !AppLockHelper.isBiometricCapable(requireContext())) {
+                        Toast.makeText(requireContext(), R.string.app_lock_no_device, Toast.LENGTH_SHORT).show()
+                    } else {
+                        app.prefs.appLockMethod = which
+                        refreshLockConfig()
+                    }
+                    d.dismiss()
+                }
+                .setNegativeButton(R.string.action_cancel, null)
+                .show()
+        }
+
+        binding.rowLockRecovery.setOnClickListener {
+            if (!app.prefs.appLockEnabled) return@setOnClickListener
+            showRecoverySetup()
+        }
+    }
+
+    private fun showRecoverySetup() {
+        val qIdx = app.prefs.recoveryQuestionIndex.coerceIn(0..LockRecovery.QUESTIONS.lastIndex)
+        val questions = LockRecovery.QUESTIONS.map { getString(it) }.toTypedArray()
+        val answer = EditText(requireContext()).apply {
+            inputType = InputType.TYPE_CLASS_TEXT
+            hint = getString(R.string.recovery_answer_hint)
+            setSingleLine(true)
+            val pad = (16 * resources.displayMetrics.density).toInt()
+            setPadding(pad, pad / 2, pad, pad / 2)
+        }
+        var picked = qIdx
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.lock_recovery_title)
+            .setSingleChoiceItems(questions, qIdx) { _, which -> picked = which }
+            .setView(answer)
+            .setPositiveButton(R.string.action_save, null)
+            .setNeutralButton(R.string.lock_recovery_clear, null)
+            .setNegativeButton(R.string.action_cancel, null)
+            .create().apply {
+                setOnShowListener {
+                    getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                        val a = answer.text.toString()
+                        if (a.trim().length < 2) {
+                            answer.error = getString(R.string.recovery_answer_empty)
+                        } else {
+                            LockRecovery.setRecovery(app.prefs, picked, a)
+                            dismiss()
+                            refreshLockConfig()
+                            Toast.makeText(requireContext(), R.string.lock_recovery_saved, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    getButton(android.app.AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
+                        LockRecovery.clear(app.prefs)
+                        dismiss()
+                        refreshLockConfig()
+                        Toast.makeText(requireContext(), R.string.lock_recovery_cleared, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                show()
+            }
     }
 
     /** 弹对话框设置 PIN：两次输入一致且为 4-6 位数字才回调 onDone */
