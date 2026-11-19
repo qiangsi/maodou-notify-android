@@ -3,7 +3,7 @@
 依据 PRD《毛豆通知 v0.1》实现的 Android 原生通知管家：**把每条通知存进可搜索的本地历史，用离线 AI 挡骚扰，其余交给自定义规则**。
 
 - **技术栈**：Kotlin + Jetpack Room + Material 3 + 协程 + ViewBinding
-- **版本**：**v1.4.3**（versionCode 10）· 修复通知类型过滤器为空导致完全收不到通知 · 最低 Android 8.0（API 26），目标 Android 15（API 35）
+- **版本**：**v1.4.4**（versionCode 11）· 修正诊断误报 + 收不到通知确诊步骤 · 最低 Android 8.0（API 26），目标 Android 15（API 35）
 - **隐私**：通知内容 AES-256-GCM 加密存本地（密钥在 Android Keystore），零上传；唯一外发通道是用户显式配置的 Webhook
 - **构建**：JDK 17 + Gradle 8.14 + Android SDK 35，`gradle assembleDebug` 已真实编译通过（BUILD SUCCESSFUL）
 
@@ -21,6 +21,15 @@
 - **弹窗**：统一走 `ThemeOverlay.Maodou.Dialog`，表面色与页面一致，单选点为主色，不再出现 Material 默认的偏色底。
 
 ## 更新记录
+
+### v1.4.4 · 修正诊断误报 + 收不到通知确诊步骤（2026-11-20）
+- **修正误报**：v1.4.3 读取系统通知类型接口的调用在部分机型（三星）抛 `NoSuchMethodException`，被吞掉后误判为"均正常"。本版多方法名尝试 + 回退读 Manifest 声明值与当前可见通知数，并把"服务已连上但一条通知都没收到"明确列为故障态。
+- **确诊三步**（针对改了 Manifest、重授权后仍收不到通知）：
+  1. 系统「通知使用权 → 毛豆通知」里检查是否有「通知类型」子开关（Android 13+ 的对话/提醒/静默分类），有则全开；
+  2. **卸载后重装**（不是覆盖）——默认通知类型列表只在安装时按 Manifest 生成，覆盖不刷新，旧版遗留的空列表可能仍在；
+  3. 重装重新授权后跑自测，报告「一句话诊断」不再显示"一条通知都没收到"即恢复。
+- 若仍不行，请到「通知使用权」页截图，看子开关真实状态。
+- versionCode 11，沿用 debug.keystore 可覆盖安装。
 
 ### v1.4.3 · 修复「通知类型过滤器为空」导致完全收不到通知（2026-11-20）
 - **确诊根因**：`AndroidManifest.xml` 的 `default_filter_types` 用逗号分隔并塞入 `vocal/important/progress` 等非法值。AOSP 规定必须用竖线 `|` 分隔、且只接受 `conversations|alerting|silent|ongoing` 四种。系统按竖线解析旧值得到空列表，而官方规则是「有值但为空 = 不允许任何类型」（AOSP: *A present but empty value means 'allow no types'*）。于是监听服务能绑定、`onListenerConnected` 正常触发，但系统不分发任何通知，`onNotificationPosted` 永不执行、历史始终为 0——与权限/保活/过滤规则均无关。
