@@ -3,7 +3,7 @@
 依据 PRD《毛豆通知 v0.1》实现的 Android 原生通知管家：**把每条通知存进可搜索的本地历史，用离线 AI 挡骚扰，其余交给自定义规则**。
 
 - **技术栈**：Kotlin + Jetpack Room + Material 3 + 协程 + ViewBinding
-- **版本**：**v1.4.0**（versionCode 7）· 应用锁增强 + 图标毛豆角标 + 设置页新入口 · 最低 Android 8.0（API 26），目标 Android 15（API 35）
+- **版本**：**v1.4.1**（versionCode 8）· 内置通知诊断探针 + 补齐 INTERNET 权限 · 最低 Android 8.0（API 26），目标 Android 15（API 35）
 - **隐私**：通知内容 AES-256-GCM 加密存本地（密钥在 Android Keystore），零上传；唯一外发通道是用户显式配置的 Webhook
 - **构建**：JDK 17 + Gradle 8.14 + Android SDK 35，`gradle assembleDebug` 已真实编译通过（BUILD SUCCESSFUL）
 
@@ -21,6 +21,15 @@
 - **弹窗**：统一走 `ThemeOverlay.Maodou.Dialog`，表面色与页面一致，单选点为主色，不再出现 Material 默认的偏色底。
 
 ## 更新记录
+
+### v1.4.1 · 内置通知诊断探针（2026-11-19）
+- **诊断页**（设置页 → 运行状态卡片 →「运行诊断」，新增 `ui/DiagnosticActivity.kt` + `util/DiagnosticProbe.kt`）：
+  - **端到端自测**：App 给自己发一条带随机 token 的通知，监听服务在「忽略自身通知」之前捕获到标记即证明「通知使用权 + 服务绑定 + 回调」链路通畅；捕获不到则锁定在权限/服务层。自测不受过滤规则影响，结果可靠。
+  - **会话观察**：开启后切到其他 App 发真实通知，回来刷新看捕获数，验证真实场景。
+  - **诊断报告**：一键汇总设备/系统、两类通知权限、监听服务连接时间、过滤配置、启用规则数、事件日志，并给出自动结论，可直接复制。
+  - **日志抓取**：应用内读取相关 logcat，失败给出 adb 命令兜底；一键直达系统「通知使用权」设置。
+- **修复 Webhook 转发**：Manifest 补齐此前缺失的 `INTERNET` 权限，网络转发不再静默失败。
+- 探针只在通知回调最前面「旁听」状态，不改任何通知正文、不影响既有监听/过滤/落库链路；versionCode 8，沿用 debug.keystore 可覆盖安装。
 
 ### v1.4.0 · 应用锁增强与设计细节（2026-11-19）
 - **应用锁离开时长**：退后台/锁屏后重新进入才验证，支持「每次 / 15 秒 / 1 分钟 / 3 分钟」，未超时不打扰（新增 `util/AppLockPolicy.kt` 纯策略类）。
