@@ -48,6 +48,22 @@
     <color name="theme_coral_light">#42291F</color>
     <color name="theme_coral_accent">#A9C6FF</color>
 
+    <!-- ============ 可选配色：燕麦（低饱和大地色，深色提亮） ============ -->
+    <color name="theme_oat_primary">#D6B894</color>
+    <color name="theme_oat_dark">#B08C68</color>
+    <color name="theme_oat_light">#3E3125</color>
+    <color name="theme_oat_accent">#9CC4B2</color>
+    <!-- ============ 可选配色：藕荷（雅致灰粉，深色提亮） ============ -->
+    <color name="theme_lotus_primary">#DBAEC0</color>
+    <color name="theme_lotus_dark">#B6859A</color>
+    <color name="theme_lotus_light">#3E2C36</color>
+    <color name="theme_lotus_accent">#A8C9C1</color>
+    <!-- ============ 可选配色：藏青（沉稳蓝灰，深色提亮） ============ -->
+    <color name="theme_navy_primary">#A9BEE0</color>
+    <color name="theme_navy_dark">#8499BF</color>
+    <color name="theme_navy_light">#26344E</color>
+    <color name="theme_navy_accent">#D4B27E</color>
+
     <!-- ============ 桌面小部件深色 ============ -->
     <color name="widget_bg">#18212C</color>
     <color name="widget_text">#E9EEF6</color>

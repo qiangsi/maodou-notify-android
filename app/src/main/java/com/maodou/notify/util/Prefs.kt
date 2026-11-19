@@ -170,10 +170,35 @@ class Prefs(context: Context) {
         get() = sp.getInt(KEY_THEME_MODE, 0)
         set(value) = sp.edit().putInt(KEY_THEME_MODE, value).apply()
 
-    /** 配色索引：0=蓝 1=青绿 2=紫 3=珊瑚 */
+    /** 配色索引：0=蓝 1=青绿 2=紫 3=珊瑚 4=燕麦 5=藕荷 6=藏青 */
     var themeColor: Int
         get() = sp.getInt(KEY_THEME_COLOR, 0)
         set(value) = sp.edit().putInt(KEY_THEME_COLOR, value).apply()
+
+    /** 桌面图标索引：0=经典 1=极简铃铛 2=毛豆荚 3=漏斗 4=信封 */
+    var launcherIcon: Int
+        get() = sp.getInt(KEY_LAUNCHER_ICON, 0)
+        set(value) = sp.edit().putInt(KEY_LAUNCHER_ICON, value).apply()
+
+    // —— v1.5.0 Pro 买断 ——
+    /** 是否已成功激活过 Pro（周卡过期后仍为 true，靠到期时间判定有效性） */
+    var proActivated: Boolean
+        get() = sp.getBoolean(KEY_PRO_ACTIVATED, false)
+        set(value) = sp.edit().putBoolean(KEY_PRO_ACTIVATED, value).apply()
+
+    var proForever: Boolean
+        get() = sp.getBoolean(KEY_PRO_FOREVER, false)
+        set(value) = sp.edit().putBoolean(KEY_PRO_FOREVER, value).apply()
+
+    /** 周卡到期时刻；永久版为 Long.MAX_VALUE */
+    var proExpireAt: Long
+        get() = sp.getLong(KEY_PRO_EXPIRE, 0L)
+        set(value) = sp.edit().putLong(KEY_PRO_EXPIRE, value).apply()
+
+    /** 已激活的码（仅用于展示，不参与校验） */
+    var proCode: String
+        get() = sp.getString(KEY_PRO_CODE, "") ?: ""
+        set(value) = sp.edit().putString(KEY_PRO_CODE, value).apply()
 
     // —— FR-E4 桌面小部件：全局暂停过滤 ——
     /** 暂停期间只记录不执行任何过滤/动作 */
@@ -268,6 +293,11 @@ class Prefs(context: Context) {
         private const val KEY_PENDING_MISSED = "pending_missed_since"
         private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_THEME_COLOR = "theme_color"
+        private const val KEY_LAUNCHER_ICON = "launcher_icon"
+        private const val KEY_PRO_ACTIVATED = "pro_activated"
+        private const val KEY_PRO_FOREVER = "pro_forever"
+        private const val KEY_PRO_EXPIRE = "pro_expire"
+        private const val KEY_PRO_CODE = "pro_code"
         private const val KEY_FILTER_PAUSED = "filter_paused"
         private const val KEY_PROBE_TOKEN = "probe_token"
         private const val KEY_PROBE_START = "probe_start_at"

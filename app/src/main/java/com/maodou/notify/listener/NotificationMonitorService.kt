@@ -18,6 +18,7 @@ import com.maodou.notify.engine.MatchContext
 import com.maodou.notify.engine.RuleEngine
 import com.maodou.notify.engine.SpamScorer
 import com.maodou.notify.util.DiagnosticProbe
+import com.maodou.notify.util.ProHelper
 import kotlinx.coroutines.launch
 
 /**
@@ -301,9 +302,15 @@ class NotificationMonitorService : NotificationListenerService() {
     /** 滚动清理：按保留窗口与条数上限，最旧优先（FR-H1） */
     private suspend fun performRollingCleanup(app: MaodouApp, total: Int) {
         val dao = app.database.notificationDao()
-        val max = app.prefs.maxRecords.coerceIn(1000, 500000)
+        // v1.5.0 Pro 门控：免费版历史上限 5000 条 / 30 天，Pro 放开到用户设定值
+        val isPro = ProHelper.isActive(app.prefs)
+        val max = if (isPro) {
+            app.prefs.maxRecords.coerceIn(1000, 500000)
+        } else {
+            app.prefs.maxRecords.coerceIn(1000, 5000).coerceAtMost(5000)
+        }
         if (total > max) dao.deleteOldest(total - max)
-        val days = app.prefs.retainDays
+        val days = if (isPro) app.prefs.retainDays else app.prefs.retainDays.coerceAtMost(30)
         if (days > 0) dao.deleteBefore(System.currentTimeMillis() - days * 86_400_000L)
     }
 

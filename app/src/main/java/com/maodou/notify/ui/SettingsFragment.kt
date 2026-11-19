@@ -28,9 +28,11 @@ import com.maodou.notify.listener.MaodouWidgetProvider
 import com.maodou.notify.listener.NotificationMonitorService
 import com.maodou.notify.util.AppLockGuard
 import com.maodou.notify.util.AppLockHelper
+import com.maodou.notify.util.IconHelper
 import com.maodou.notify.util.AppLockPolicy
 import com.maodou.notify.util.LockRecovery
 import com.maodou.notify.util.PinHelper
+import com.maodou.notify.util.ProHelper
 import com.maodou.notify.util.ThemeHelper
 import com.maodou.notify.util.isListenerEnabled
 import com.maodou.notify.util.openListenerSettings
@@ -62,6 +64,59 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         app = requireActivity().application as MaodouApp
         val prefs = app.prefs
+
+        // —— v1.5.0 Pro 买断：状态展示 + 激活入口 ——
+        fun refreshProStatus() {
+            binding.tvProStatus.text = ProHelper.statusText(prefs)
+        }
+        refreshProStatus()
+        binding.cardPro.setOnClickListener {
+            if (ProHelper.isActive(prefs)) {
+                // 已激活：显示状态与权益，不重复激活
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.pro_card_title)
+                    .setMessage(
+                        ProHelper.statusText(prefs) + "\n\n" +
+                            getString(R.string.pro_dialog_benefits)
+                    )
+                    .setPositiveButton(R.string.action_ok, null)
+                    .show()
+            } else {
+                val input = android.widget.EditText(requireContext()).apply {
+                    hint = getString(R.string.pro_dialog_hint)
+                    inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
+                    setSingleLine(true)
+                    setText(prefs.proCode)
+                }
+                val pad = (16 * resources.displayMetrics.density).toInt()
+                val container = android.widget.FrameLayout(requireContext()).apply {
+                    setPadding(pad, pad / 2, pad, 0)
+                    addView(input, android.widget.FrameLayout.LayoutParams(
+                        android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                        android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
+                    ))
+                }
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.pro_dialog_title)
+                    .setMessage(R.string.pro_dialog_benefits)
+                    .setView(container)
+                    .setPositiveButton(R.string.pro_activate) { _, _ ->
+                        val info = ProHelper.verify(input.text.toString())
+                        if (info.valid) {
+                            prefs.proActivated = true
+                            prefs.proForever = info.forever
+                            prefs.proExpireAt = info.expireAt
+                            prefs.proCode = input.text.toString().trim()
+                            refreshProStatus()
+                            Toast.makeText(requireContext(), R.string.pro_activate_ok, Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(requireContext(), R.string.pro_activate_fail, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    .setNegativeButton(R.string.action_cancel, null)
+                    .show()
+            }
+        }
 
         fun refreshPermission() {
             binding.tvPermission.text = if (isListenerEnabled(requireContext()))
@@ -99,7 +154,8 @@ class SettingsFragment : Fragment() {
         // 外观：深浅模式 + 配色（FR-E6），切换即时生效并记忆
         fun refreshThemeLabels() {
             binding.tvThemeModeValue.text = getString(R.string.theme_mode_label, ThemeHelper.MODE_NAMES[prefs.themeMode.coerceIn(0..2)])
-            binding.tvThemeColorValue.text = getString(R.string.theme_color_label, ThemeHelper.COLOR_NAMES[prefs.themeColor.coerceIn(0..3)])
+            binding.tvThemeColorValue.text = getString(R.string.theme_color_label, ThemeHelper.COLOR_NAMES[prefs.themeColor.coerceIn(0 until ThemeHelper.COLOR_COUNT)])
+            binding.tvLauncherIconValue.text = getString(R.string.launcher_icon_label, IconHelper.ICON_NAMES[prefs.launcherIcon.coerceIn(0 until IconHelper.ICON_COUNT)])
         }
         refreshThemeLabels()
         binding.tvThemeMode.setOnClickListener {
@@ -117,12 +173,33 @@ class SettingsFragment : Fragment() {
         }
         binding.tvThemeColor.setOnClickListener {
             MaterialAlertDialogBuilder(requireContext())
-                .setTitle(getString(R.string.theme_color_label, ThemeHelper.COLOR_NAMES[prefs.themeColor.coerceIn(0..3)]))
-                .setSingleChoiceItems(ThemeHelper.COLOR_NAMES, prefs.themeColor.coerceIn(0..3)) { d, which ->
+                .setTitle(getString(R.string.theme_color_label, ThemeHelper.COLOR_NAMES[prefs.themeColor.coerceIn(0 until ThemeHelper.COLOR_COUNT)]))
+                .setSingleChoiceItems(ThemeHelper.COLOR_NAMES, prefs.themeColor.coerceIn(0 until ThemeHelper.COLOR_COUNT)) { d, which ->
                     prefs.themeColor = which
                     MaodouWidgetProvider.refreshAll(requireContext())
                     d.dismiss()
                     requireActivity().recreate()
+                }
+                .setNegativeButton(R.string.action_cancel, null)
+                .show()
+        }
+        binding.tvLauncherIcon.setOnClickListener {
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.launcher_icon_dialog_title)
+                .setSingleChoiceItems(IconHelper.ICON_NAMES, prefs.launcherIcon.coerceIn(0 until IconHelper.ICON_COUNT)) { d, which ->
+                    val ok = IconHelper.switchIcon(requireContext(), which)
+                    if (ok) {
+                        prefs.launcherIcon = which
+                        refreshThemeLabels()
+                        android.widget.Toast.makeText(
+                            requireContext(), R.string.launcher_icon_hint, android.widget.Toast.LENGTH_LONG
+                        ).show()
+                    } else {
+                        android.widget.Toast.makeText(
+                            requireContext(), "图标切换失败，请重试", android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    d.dismiss()
                 }
                 .setNegativeButton(R.string.action_cancel, null)
                 .show()
@@ -172,12 +249,22 @@ class SettingsFragment : Fragment() {
         }
 
         binding.btnExport.setOnClickListener {
-            // FR-H6：导出前让用户选择筛选范围
-            val ranges = arrayOf("全部", "近 7 天", "近 30 天")
+            // FR-H6 + v1.5.0 Pro：免费版限近 7 / 30 天，"全部"需 Pro
+            val isPro = ProHelper.isActive(prefs)
+            val ranges = if (isPro)
+                arrayOf("全部", "近 7 天", "近 30 天")
+            else
+                arrayOf("近 7 天", "近 30 天", "全部（需 Pro）")
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle("导出范围")
                 .setItems(ranges) { _, which ->
-                    exportDays = when (which) { 1 -> 7; 2 -> 30; else -> 0 }
+                    val selection = if (isPro) which else which + 1
+                    if (which == 2 && !isPro) {
+                        Toast.makeText(requireContext(), R.string.pro_free_locked, Toast.LENGTH_LONG).show()
+                        binding.cardPro.performClick()
+                        return@setItems
+                    }
+                    exportDays = when (selection) { 1 -> 7; 2 -> 30; else -> 0 }
                     exportLauncher.launch("毛豆通知_${System.currentTimeMillis()}.csv")
                 }
                 .show()

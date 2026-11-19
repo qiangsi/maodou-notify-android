@@ -17,6 +17,7 @@ import com.maodou.notify.data.DailyRaw
 import com.maodou.notify.data.PackageCount
 import com.maodou.notify.data.Result
 import com.maodou.notify.databinding.FragmentStatsBinding
+import com.maodou.notify.util.ProHelper
 import com.maodou.notify.util.ThemeHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -57,7 +58,16 @@ class StatsFragment : Fragment() {
             refresh()
         }
         binding.chipWindow.setOnCheckedChangeListener { _, checkedId ->
-            days = if (checkedId == R.id.chip_30d) 30 else 7
+            if (checkedId == R.id.chip_30d && !ProHelper.isActive(app.prefs)) {
+                // 免费版仅 7 天统计；30 天窗口需 Pro
+                android.widget.Toast.makeText(
+                    requireContext(), R.string.pro_free_locked, android.widget.Toast.LENGTH_LONG
+                ).show()
+                days = 7
+                binding.chip7d.isChecked = true
+            } else {
+                days = if (checkedId == R.id.chip_30d) 30 else 7
+            }
             refresh()
         }
         refresh()

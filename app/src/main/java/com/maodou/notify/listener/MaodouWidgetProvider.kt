@@ -68,10 +68,13 @@ class MaodouWidgetProvider : AppWidgetProvider() {
             val subtext = ContextCompat.getColor(
                 context, if (dark) R.color.widget_subtext_dark else R.color.widget_subtext_light
             )
-            val accentRes = when (colorIndex.coerceIn(0..3)) {
+            val accentRes = when (colorIndex.coerceIn(0 until ThemeHelper.COLOR_COUNT)) {
                 1 -> if (dark) R.color.widget_accent_teal_dark else R.color.widget_accent_teal_light
                 2 -> if (dark) R.color.widget_accent_purple_dark else R.color.widget_accent_purple_light
                 3 -> if (dark) R.color.widget_accent_coral_dark else R.color.widget_accent_coral_light
+                4 -> if (dark) R.color.widget_accent_oat_dark else R.color.widget_accent_oat_light
+                5 -> if (dark) R.color.widget_accent_lotus_dark else R.color.widget_accent_lotus_light
+                6 -> if (dark) R.color.widget_accent_navy_dark else R.color.widget_accent_navy_light
                 else -> if (dark) R.color.widget_accent_dark else R.color.widget_accent_light
             }
             val accent = ContextCompat.getColor(context, accentRes)

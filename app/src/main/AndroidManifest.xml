@@ -34,12 +34,80 @@
             android:name=".ui.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- v1.5.0 可切换桌面图标：5 个别名各带一个图标，同一时刻只启用一个。
+             Prefs.launcherIcon 记录选择，IconHelper 负责 enable 目标 / disable 其余。
+             注意：MainActivity 本身不挂 LAUNCHER，避免出现重复图标。 -->
+        <activity-alias
+            android:name=".ui.MainActivityAliasClassic"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher"
+            android:label="@string/app_name"
+            android:targetActivity=".ui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".ui.MainActivityAliasBell"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_bell"
+            android:roundIcon="@mipmap/ic_launcher_bell"
+            android:label="@string/app_name"
+            android:targetActivity=".ui.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".ui.MainActivityAliasPod"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_pod"
+            android:roundIcon="@mipmap/ic_launcher_pod"
+            android:label="@string/app_name"
+            android:targetActivity=".ui.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".ui.MainActivityAliasFunnel"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_funnel"
+            android:roundIcon="@mipmap/ic_launcher_funnel"
+            android:label="@string/app_name"
+            android:targetActivity=".ui.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".ui.MainActivityAliasMail"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_mail"
+            android:roundIcon="@mipmap/ic_launcher_mail"
+            android:label="@string/app_name"
+            android:targetActivity=".ui.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
 
         <activity android:name=".ui.RuleEditActivity" android:exported="false" />
         <activity android:name=".ui.NotificationDetailActivity" android:exported="false" />

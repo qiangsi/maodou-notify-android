@@ -15,8 +15,13 @@ object ThemeHelper {
     const val MODE_LIGHT = 1
     const val MODE_DARK = 2
 
-    val COLOR_NAMES = arrayOf("经典蓝", "青绿", "紫罗兰", "珊瑚橙")
+    val COLOR_NAMES = arrayOf(
+        "经典蓝", "青绿", "紫罗兰", "珊瑚橙", "燕麦", "藕荷", "藏青"
+    )
     val MODE_NAMES = arrayOf("跟随系统", "浅色", "深色")
+
+    /** 配色总数，供设置页与索引裁剪共用，避免各处硬编码范围漂移 */
+    const val COLOR_COUNT = 7
 
     /** 把 Prefs 的深浅模式应用到全局（Activity 重建后生效） */
     fun applyNightMode(mode: Int) {
@@ -29,10 +34,13 @@ object ThemeHelper {
     }
 
     /** 根据配色索引返回主题 style 资源 id（必须在 setContentView 前 setTheme） */
-    fun themeStyle(colorIndex: Int): Int = when (colorIndex.coerceIn(0..3)) {
+    fun themeStyle(colorIndex: Int): Int = when (colorIndex.coerceIn(0 until COLOR_COUNT)) {
         1 -> R.style.Theme_MaodouNotify_Teal
         2 -> R.style.Theme_MaodouNotify_Purple
         3 -> R.style.Theme_MaodouNotify_Coral
+        4 -> R.style.Theme_MaodouNotify_Oat
+        5 -> R.style.Theme_MaodouNotify_Lotus
+        6 -> R.style.Theme_MaodouNotify_Navy
         else -> R.style.Theme_MaodouNotify
     }
 

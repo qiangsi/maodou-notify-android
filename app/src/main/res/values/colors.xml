@@ -48,6 +48,22 @@
     <color name="theme_coral_light">#FCEDE6</color>
     <color name="theme_coral_accent">#4B76C0</color>
 
+    <!-- ============ 可选配色：燕麦（低饱和大地色，浅色） ============ -->
+    <color name="theme_oat_primary">#8B6F52</color>
+    <color name="theme_oat_dark">#6E5540</color>
+    <color name="theme_oat_light">#F3EDE4</color>
+    <color name="theme_oat_accent">#6B8E7F</color>
+    <!-- ============ 可选配色：藕荷（雅致灰粉，浅色） ============ -->
+    <color name="theme_lotus_primary">#9A6E7E</color>
+    <color name="theme_lotus_dark">#7A5362</color>
+    <color name="theme_lotus_light">#F5EBEF</color>
+    <color name="theme_lotus_accent">#6E8B84</color>
+    <!-- ============ 可选配色：藏青（沉稳蓝灰，浅色） ============ -->
+    <color name="theme_navy_primary">#33435F</color>
+    <color name="theme_navy_dark">#22304A</color>
+    <color name="theme_navy_light">#E8ECF3</color>
+    <color name="theme_navy_accent">#B0844F</color>
+
     <!-- ============ 启动器图标（固定色，不随主题切换） ============ -->
     <color name="launcher_bg_start">#7EA6E8</color>
     <color name="launcher_bg_end">#4A72C0</color>
@@ -76,6 +92,12 @@
     <color name="widget_accent_purple_dark">#C4A9FF</color>
     <color name="widget_accent_coral_light">#D46A43</color>
     <color name="widget_accent_coral_dark">#F2A883</color>
+    <color name="widget_accent_oat_light">#8B6F52</color>
+    <color name="widget_accent_oat_dark">#D6B894</color>
+    <color name="widget_accent_lotus_light">#9A6E7E</color>
+    <color name="widget_accent_lotus_dark">#DBAEC0</color>
+    <color name="widget_accent_navy_light">#33435F</color>
+    <color name="widget_accent_navy_dark">#A9BEE0</color>
     <color name="switch_off">#DFE4EC</color>
     <!-- 次级可点击文字（浅色） -->
     <color name="text_link">#4B76C0</color>

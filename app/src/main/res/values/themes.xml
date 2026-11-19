@@ -79,6 +79,36 @@
         <item name="colorOnSecondaryContainer">@color/theme_coral_dark</item>
     </style>
 
+    <!-- ============ v1.5.0 低饱和新配色：燕麦 ============ -->
+    <style name="Theme.MaodouNotify.Oat">
+        <item name="colorPrimary">@color/theme_oat_primary</item>
+        <item name="colorPrimaryContainer">@color/theme_oat_light</item>
+        <item name="colorOnPrimaryContainer">@color/theme_oat_dark</item>
+        <item name="colorSecondary">@color/theme_oat_primary</item>
+        <item name="colorSecondaryContainer">@color/theme_oat_light</item>
+        <item name="colorOnSecondaryContainer">@color/theme_oat_dark</item>
+    </style>
+
+    <!-- ============ v1.5.0 低饱和新配色：藕荷 ============ -->
+    <style name="Theme.MaodouNotify.Lotus">
+        <item name="colorPrimary">@color/theme_lotus_primary</item>
+        <item name="colorPrimaryContainer">@color/theme_lotus_light</item>
+        <item name="colorOnPrimaryContainer">@color/theme_lotus_dark</item>
+        <item name="colorSecondary">@color/theme_lotus_primary</item>
+        <item name="colorSecondaryContainer">@color/theme_lotus_light</item>
+        <item name="colorOnSecondaryContainer">@color/theme_lotus_dark</item>
+    </style>
+
+    <!-- ============ v1.5.0 低饱和新配色：藏青 ============ -->
+    <style name="Theme.MaodouNotify.Navy">
+        <item name="colorPrimary">@color/theme_navy_primary</item>
+        <item name="colorPrimaryContainer">@color/theme_navy_light</item>
+        <item name="colorOnPrimaryContainer">@color/theme_navy_dark</item>
+        <item name="colorSecondary">@color/theme_navy_primary</item>
+        <item name="colorSecondaryContainer">@color/theme_navy_light</item>
+        <item name="colorOnSecondaryContainer">@color/theme_navy_dark</item>
+    </style>
+
     <style name="Theme.MaodouNotify.Dialog" parent="Theme.Material3.DayNight.Dialog.Alert" />
 
     <!-- ============ 通用视觉组件：统一圆角、描边、层级 ============ -->

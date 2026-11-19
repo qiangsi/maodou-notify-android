@@ -120,7 +120,7 @@
     <string name="settings_clear_confirm">确定清空全部通知历史和 AI 标注？此操作不可恢复。</string>
     <string name="settings_cleared">已清空</string>
     <string name="settings_about">关于</string>
-    <string name="settings_version">版本 1.4.4 · 数据仅存本机</string>
+    <string name="settings_version">版本 1.5.0 · 数据仅存本机</string>
     <string name="export_done">已导出到文档目录</string>
     <string name="export_failed">导出失败</string>
 
@@ -237,6 +237,22 @@
     <string name="settings_appearance">外观</string>
     <string name="theme_mode_label">深浅模式：%1$s</string>
     <string name="theme_color_label">配色主题：%1$s</string>
+    <string name="launcher_icon_label">桌面图标：%1$s</string>
+    <string name="launcher_icon_dialog_title">选择桌面图标</string>
+    <string name="launcher_icon_hint">切换后桌面图标会变化，部分桌面需等几秒或重启桌面才刷新。</string>
+
+    <!-- v1.5.0 Pro 买断 -->
+    <string name="pro_card_title">毛豆通知 Pro</string>
+    <string name="pro_card_subtitle">导出全部 · 无限历史 · 深度统计</string>
+    <string name="pro_status_free">免费版 · 点此了解 Pro</string>
+    <string name="pro_dialog_title">激活 Pro</string>
+    <string name="pro_dialog_hint">输入激活码（MD1-开头）</string>
+    <string name="pro_dialog_benefits">Pro 权益：\n· CSV 可导出全部历史（免费版限近 7 / 30 天）\n· 无限历史保留（免费版 30 天 / 5000 条）\n· 深度统计：解锁近 30 天窗口\n\n周卡 ¥1（7 天）· 永久 ¥18 买断\n付款后向开发者获取激活码，输入下方即可解锁。</string>
+    <string name="pro_activate">激活</string>
+    <string name="pro_activate_ok">激活成功，Pro 已解锁</string>
+    <string name="pro_activate_fail">激活码无效，请核对后重试</string>
+    <string name="pro_deactivate">已激活 Pro，点此可查看状态</string>
+    <string name="pro_free_locked">此功能需 Pro，点此解锁</string>
     <!-- FR-E4 桌面小部件 / 暂停过滤 -->
     <string name="settings_filter_paused">暂停过滤</string>
     <string name="settings_filter_paused_desc">开启后仅记录通知，不执行任何规则与 AI 过滤，桌面小部件可快捷切换</string>

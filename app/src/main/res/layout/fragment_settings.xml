@@ -21,6 +21,72 @@
             android:text="@string/tab_settings"
             android:textAppearance="@style/TextAppearance.Maodou.PageTitle" />
 
+        <!-- ============ v1.5.0 Pro 买断 ============ -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_pro"
+            style="@style/Widget.Maodou.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <ImageView
+                    android:layout_width="@dimen/icon_tile"
+                    android:layout_height="@dimen/icon_tile"
+                    android:background="@drawable/bg_icon_tile"
+                    android:contentDescription="@null"
+                    android:padding="@dimen/icon_tile_padding"
+                    android:src="@drawable/ic_sparkle"
+                    android:tint="?attr/colorPrimary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/pro_card_title"
+                        android:textAppearance="@style/TextAppearance.Maodou.CardTitle" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/pro_card_subtitle"
+                        android:textAppearance="@style/TextAppearance.Maodou.Caption" />
+
+                    <TextView
+                        android:id="@+id/tv_pro_status"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:textColor="?attr/colorPrimary"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_chevron_right"
+                    android:tint="@color/text_tertiary" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- ============ 权限 ============ -->
         <TextView
             android:layout_width="wrap_content"
@@ -306,6 +372,50 @@
 
                     <TextView
                         android:id="@+id/tv_theme_color_value"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_chevron_right"
+                        android:tint="@color/text_tertiary" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="62dp"
+                    android:background="@color/divider" />
+
+                <LinearLayout
+                    android:id="@+id/tv_launcher_icon"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/row_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp">
+
+                    <ImageView
+                        android:layout_width="@dimen/icon_tile"
+                        android:layout_height="@dimen/icon_tile"
+                        android:background="@drawable/bg_icon_tile"
+                        android:contentDescription="@null"
+                        android:padding="@dimen/icon_tile_padding"
+                        android:src="@drawable/ic_apps"
+                        android:tint="?attr/colorPrimary" />
+
+                    <TextView
+                        android:id="@+id/tv_launcher_icon_value"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
