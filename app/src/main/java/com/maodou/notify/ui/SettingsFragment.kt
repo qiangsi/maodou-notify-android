@@ -8,9 +8,11 @@ import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,8 +25,10 @@ import com.maodou.notify.data.CryptoHelper
 import com.maodou.notify.databinding.FragmentSettingsBinding
 import com.maodou.notify.engine.ActionExecutor
 import com.maodou.notify.listener.MaodouWidgetProvider
+import com.maodou.notify.listener.NotificationMonitorService
 import com.maodou.notify.util.AppLockGuard
 import com.maodou.notify.util.AppLockHelper
+import com.maodou.notify.util.PinHelper
 import com.maodou.notify.util.ThemeHelper
 import com.maodou.notify.util.isListenerEnabled
 import com.maodou.notify.util.openListenerSettings
@@ -65,6 +69,28 @@ class SettingsFragment : Fragment() {
         refreshPermission()
         binding.cardPermission.setOnClickListener { openListenerSettings(requireContext()) }
 
+        // 运行状态自检（v1.3.2）：权限/监听/过滤三态一眼可见
+        fun refreshStatus() {
+            val permissionOn = isListenerEnabled(requireContext())
+            binding.tvStatusPermission.text = getString(
+                if (permissionOn) R.string.settings_status_on else R.string.settings_status_off
+            )
+            val connected = permissionOn && NotificationMonitorService.isConnected
+            binding.tvStatusListener.text = getString(
+                if (connected) R.string.settings_status_on else R.string.settings_status_off
+            )
+            binding.tvStatusFilter.text = getString(
+                if (prefs.filterPaused) R.string.settings_status_filter_off
+                else R.string.settings_status_filter_on
+            )
+        }
+        refreshStatus()
+        binding.btnRebind.setOnClickListener {
+            NotificationMonitorService.rebindIfNeeded(requireContext())
+            Toast.makeText(requireContext(), R.string.settings_status_rebind_done, Toast.LENGTH_SHORT).show()
+            binding.root.postDelayed({ if (_binding != null) refreshStatus() }, 800)
+        }
+
         // 外观：深浅模式 + 配色（FR-E6），切换即时生效并记忆
         fun refreshThemeLabels() {
             binding.tvThemeModeValue.text = getString(R.string.theme_mode_label, ThemeHelper.MODE_NAMES[prefs.themeMode.coerceIn(0..2)])
@@ -102,6 +128,7 @@ class SettingsFragment : Fragment() {
         binding.switchFilterPaused.setOnCheckedChangeListener { _, c ->
             prefs.filterPaused = c
             MaodouWidgetProvider.refreshAll(requireContext())
+            refreshStatus()
         }
 
         // AI 开关与阈值
@@ -173,30 +200,31 @@ class SettingsFragment : Fragment() {
                 .show()
         }
 
-        // 应用锁（FR-E5）：开启需先验证身份，关闭立即生效，退后台/锁屏后重新验证
+        // 应用锁（FR-E5）：开启需先自设密码，关闭立即生效，退后台/锁屏后重新验证
         binding.switchAppLock.isChecked = prefs.appLockEnabled
         binding.switchAppLock.setOnCheckedChangeListener { _, enable ->
             if (lockSwitchBusy) return@setOnCheckedChangeListener
             if (enable) {
-                if (!AppLockHelper.isDeviceCapable(requireContext())) {
-                    setLockSwitch(false)
-                    Toast.makeText(requireContext(), R.string.app_lock_no_device, Toast.LENGTH_SHORT).show()
-                    return@setOnCheckedChangeListener
+                if (PinHelper.hasPin(prefs)) {
+                    // 已有密码：验证旧密码后重新启用
+                    AppLockHelper.prompt(requireActivity(), prefs,
+                        onSuccess = { enableAppLock(prefs) },
+                        onFail = {
+                            setLockSwitch(false)
+                            Toast.makeText(requireContext(), R.string.app_lock_canceled, Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                } else {
+                    // 首次开启：先设置一个 4-6 位数字密码
+                    showPinSetup(
+                        onDone = {
+                            PinHelper.setPin(prefs, it)
+                            enableAppLock(prefs)
+                            Toast.makeText(requireContext(), R.string.app_lock_pin_set_done, Toast.LENGTH_SHORT).show()
+                        },
+                        onCancel = { setLockSwitch(false) }
+                    )
                 }
-                AppLockHelper.prompt(requireActivity(), prefs,
-                    onSuccess = {
-                        prefs.appLockEnabled = true
-                        // 强制下次从后台回来时验证，而不是沿用刚才的解锁时间
-                        prefs.lastUnlockAt = 0L
-                        AppLockGuard.unlock()
-                        setLockSwitch(true)
-                        Toast.makeText(requireContext(), R.string.app_lock_on, Toast.LENGTH_SHORT).show()
-                    },
-                    onFail = {
-                        setLockSwitch(false)
-                        Toast.makeText(requireContext(), R.string.app_lock_canceled, Toast.LENGTH_SHORT).show()
-                    }
-                )
             } else {
                 prefs.appLockEnabled = false
                 AppLockGuard.unlock()
@@ -211,6 +239,26 @@ class SettingsFragment : Fragment() {
                 AppLockGuard.lockNow()
                 Toast.makeText(requireContext(), R.string.app_lock_locked, Toast.LENGTH_SHORT).show()
             }
+        }
+
+        binding.btnChangePin.setOnClickListener {
+            if (!PinHelper.hasPin(prefs)) {
+                Toast.makeText(requireContext(), R.string.app_lock_need_enable, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            // 修改密码前先验证当前密码
+            AppLockHelper.prompt(requireActivity(), prefs,
+                onSuccess = {
+                    showPinSetup(
+                        onDone = {
+                            PinHelper.setPin(prefs, it)
+                            Toast.makeText(requireContext(), R.string.app_lock_pin_set_done, Toast.LENGTH_SHORT).show()
+                        },
+                        onCancel = {}
+                    )
+                },
+                onFail = {}
+            )
         }
 
         binding.btnBatteryOpt.setOnClickListener {
@@ -333,6 +381,18 @@ class SettingsFragment : Fragment() {
             binding.tvPermission.text = if (isListenerEnabled(requireContext()))
                 getString(R.string.settings_permission_status_on)
             else getString(R.string.settings_permission_status_off)
+            val permissionOn = isListenerEnabled(requireContext())
+            binding.tvStatusPermission.text = getString(
+                if (permissionOn) R.string.settings_status_on else R.string.settings_status_off
+            )
+            val connected = permissionOn && NotificationMonitorService.isConnected
+            binding.tvStatusListener.text = getString(
+                if (connected) R.string.settings_status_on else R.string.settings_status_off
+            )
+            binding.tvStatusFilter.text = getString(
+                if (app.prefs.filterPaused) R.string.settings_status_filter_off
+                else R.string.settings_status_filter_on
+            )
         }
     }
 
@@ -340,6 +400,56 @@ class SettingsFragment : Fragment() {
         lockSwitchBusy = true
         binding.switchAppLock.isChecked = checked
         lockSwitchBusy = false
+    }
+
+    private fun enableAppLock(prefs: com.maodou.notify.util.Prefs) {
+        prefs.appLockEnabled = true
+        // 强制下次从后台回来时验证，而不是沿用刚才的解锁时间
+        prefs.lastUnlockAt = 0L
+        AppLockGuard.unlock()
+        setLockSwitch(true)
+        Toast.makeText(requireContext(), R.string.app_lock_on, Toast.LENGTH_SHORT).show()
+    }
+
+    /** 弹对话框设置 PIN：两次输入一致且为 4-6 位数字才回调 onDone */
+    private fun showPinSetup(onDone: (String) -> Unit, onCancel: () -> Unit) {
+        val ctx = requireContext()
+        fun newField(hintRes: Int) = EditText(ctx).apply {
+            inputType = InputType.TYPE_CLASS_NUMBER
+            transformationMethod = android.text.method.PasswordTransformationMethod.getInstance()
+            hint = getString(hintRes)
+            setSingleLine(true)
+            val pad = (16 * resources.displayMetrics.density).toInt()
+            setPadding(pad, pad / 2, pad, pad / 2)
+        }
+        val first = newField(R.string.app_lock_pin_set_hint)
+        val second = newField(R.string.app_lock_pin_confirm_hint)
+        val box = android.widget.LinearLayout(ctx).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            addView(first)
+            addView(second)
+        }
+        val dialog = MaterialAlertDialogBuilder(ctx)
+            .setTitle(R.string.app_lock_pin_set_title)
+            .setView(box)
+            .setCancelable(false)
+            .setPositiveButton(R.string.action_ok, null)
+            .setNegativeButton(R.string.action_cancel, null)
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                when {
+                    !PinHelper.isValidFormat(first.text.toString()) -> first.error = getString(R.string.app_lock_pin_invalid)
+                    first.text.toString() != second.text.toString() -> second.error = getString(R.string.app_lock_pin_mismatch)
+                    else -> {
+                        dialog.dismiss()
+                        onDone(first.text.toString())
+                    }
+                }
+            }
+        }
+        dialog.setOnCancelListener { onCancel() }
+        dialog.show()
     }
 
     override fun onDestroyView() {

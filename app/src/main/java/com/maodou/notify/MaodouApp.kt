@@ -6,7 +6,9 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
 import android.os.Bundle
+import com.maodou.notify.data.Actions
 import com.maodou.notify.data.AppDatabase
+import com.maodou.notify.data.FilterRule
 import com.maodou.notify.listener.KeepAliveJobService
 import com.maodou.notify.util.AppLockGuard
 import com.maodou.notify.util.Prefs
@@ -15,6 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MaodouApp : Application() {
 
@@ -45,6 +48,44 @@ class MaodouApp : Application() {
 
         // 保活看门狗：任务被划掉或进程被回收后仍可恢复前台服务
         KeepAliveJobService.schedule(this)
+
+        // 首次安装种入开箱即用的默认规则：不这样做的话，新用户装上看不到任何拦截效果
+        seedDefaultRulesIfNeeded()
+    }
+
+    /**
+     * 只在首次安装、且规则表为空时写入一组保守的默认规则。
+     * 验证码保护优先级最高，确保重要验证码不被营销规则误伤。
+     */
+    private fun seedDefaultRulesIfNeeded() {
+        if (prefs.defaultRulesSeeded) return
+        appScope.launch {
+            withContext(Dispatchers.IO) {
+                val dao = database.ruleDao()
+                if (dao.enabledRules().isEmpty()) {
+                    dao.insert(FilterRule(
+                        name = "保护验证码（不拦截）",
+                        keywordInclude = "验证码,校验码,动态码,取件码,取件,登录码",
+                        action = Actions.KEEP,
+                        priority = 100
+                    ))
+                    dao.insert(FilterRule(
+                        name = "拦截营销广告",
+                        keywordInclude = "广告,推广,促销,秒杀,特价,优惠券,清仓,甩卖,全网最低,点击购买",
+                        keywordExclude = "验证码,取件码,到账,转账",
+                        action = Actions.DISMISS,
+                        priority = 50
+                    ))
+                    dao.insert(FilterRule(
+                        name = "拦截贷款赌博骚扰",
+                        keywordInclude = "贷款,额度,借款,低息,提额,博彩,彩票,赌博,兼职日入",
+                        action = Actions.DISMISS,
+                        priority = 40
+                    ))
+                }
+                prefs.defaultRulesSeeded = true
+            }
+        }
     }
 
     private fun createChannels() {

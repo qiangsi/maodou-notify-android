@@ -12,6 +12,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maodou.notify.R
 import com.maodou.notify.MaodouApp
 import com.maodou.notify.databinding.ActivityMainBinding
+import com.maodou.notify.listener.NotificationMonitorService
 import com.maodou.notify.util.ThemeHelper
 import com.maodou.notify.util.hasPostNotificationPermission
 import com.maodou.notify.util.isListenerEnabled
@@ -67,6 +68,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // v1.3.2：权限在但服务未连接时主动请求重绑，恢复被系统断开的接管
+        if (isListenerEnabled(this)) {
+            NotificationMonitorService.rebindIfNeeded(this)
+        }
         // FR-P4：运行中检测通知使用权被收回
         if (!isListenerEnabled(this)) {
             MaterialAlertDialogBuilder(this)

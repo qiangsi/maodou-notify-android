@@ -10,8 +10,13 @@ class Prefs(context: Context) {
         context.applicationContext.getSharedPreferences("maodou_prefs", Context.MODE_PRIVATE)
 
     var aiEnabled: Boolean
-        get() = sp.getBoolean(KEY_AI_ENABLED, false)
+        get() = sp.getBoolean(KEY_AI_ENABLED, true)
         set(value) = sp.edit().putBoolean(KEY_AI_ENABLED, value).apply()
+
+    /** 是否已初始化开箱即用的默认过滤规则（仅首次安装执行） */
+    var defaultRulesSeeded: Boolean
+        get() = sp.getBoolean(KEY_DEFAULT_RULES_SEEDED, false)
+        set(value) = sp.edit().putBoolean(KEY_DEFAULT_RULES_SEEDED, value).apply()
 
     var aiThreshold: Int
         get() = sp.getInt(KEY_AI_THRESHOLD, 80)
@@ -84,6 +89,21 @@ class Prefs(context: Context) {
         get() = sp.getLong(KEY_LAST_UNLOCK, 0L)
         set(value) = sp.edit().putLong(KEY_LAST_UNLOCK, value).apply()
 
+    /** 监听服务最近一次连接到系统的时间（0=从未连接），用于设置页显示真实运行状态 */
+    var listenerConnectedAt: Long
+        get() = sp.getLong(KEY_LISTENER_CONNECTED_AT, 0L)
+        set(value) = sp.edit().putLong(KEY_LISTENER_CONNECTED_AT, value).apply()
+
+    /** 应用锁独立 PIN：仅保存加盐哈希，绝不存明文 */
+    var appLockPinHash: String
+        get() = sp.getString(KEY_APP_LOCK_PIN_HASH, "") ?: ""
+        set(value) = sp.edit().putString(KEY_APP_LOCK_PIN_HASH, value).apply()
+
+    /** PIN 加盐，首次设置 PIN 时生成并固定保存 */
+    var appLockPinSalt: String
+        get() = sp.getString(KEY_APP_LOCK_PIN_SALT, "") ?: ""
+        set(value) = sp.edit().putString(KEY_APP_LOCK_PIN_SALT, value).apply()
+
     // —— FR-A3 离线学习调度 ——
     var aiLearnOnlyCharging: Boolean
         get() = sp.getBoolean(KEY_AI_LEARN_CHARGING, true)
@@ -127,6 +147,7 @@ class Prefs(context: Context) {
 
     companion object {
         private const val KEY_AI_ENABLED = "ai_enabled"
+        private const val KEY_DEFAULT_RULES_SEEDED = "default_rules_seeded"
         private const val KEY_AI_THRESHOLD = "ai_threshold"
         private const val KEY_UNDO = "undo_enabled"
         private const val KEY_SMART_MUTE = "smart_mute"
@@ -142,6 +163,9 @@ class Prefs(context: Context) {
         private const val KEY_APP_LOCK = "app_lock"
         private const val KEY_APP_LOCK_TIMEOUT = "app_lock_timeout_min"
         private const val KEY_LAST_UNLOCK = "last_unlock_at"
+        private const val KEY_LISTENER_CONNECTED_AT = "listener_connected_at"
+        private const val KEY_APP_LOCK_PIN_HASH = "app_lock_pin_hash"
+        private const val KEY_APP_LOCK_PIN_SALT = "app_lock_pin_salt"
         private const val KEY_AI_LEARN_CHARGING = "ai_learn_charging"
         private const val KEY_LAST_LEARN = "last_learn_at"
         private const val KEY_FIRST_RUN = "first_run_at"

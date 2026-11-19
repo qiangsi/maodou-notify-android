@@ -51,9 +51,10 @@
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
+            <!-- 监听全部通知类型：漏掉 important/vocal 会让大量通知在 Android 13+ 收不到 -->
             <meta-data
                 android:name="android.service.notification.default_filter_types"
-                android:value="conversations,alerting,silent,ongoing,progress" />
+                android:value="conversations,alerting,vocal,silent,important,ongoing,progress" />
         </service>
 
         <!-- 保活前台服务 -->

@@ -1,6 +1,9 @@
 package com.maodou.notify.listener
 
 import android.app.Notification
+import android.content.ComponentName
+import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
@@ -25,6 +28,21 @@ class NotificationMonitorService : NotificationListenerService() {
     companion object {
         var instance: NotificationMonitorService? = null
             private set
+
+        /** 监听服务是否真正连接到系统。用于设置页显示真实运行状态。 */
+        val isConnected: Boolean get() = instance != null
+
+        /**
+         * 请求系统重新绑定监听服务。
+         * 进程被杀/用户划掉最近任务后，权限仍在但服务可能未连接；主动 rebind 可恢复接管。
+         */
+        fun rebindIfNeeded(context: Context) {
+            if (instance != null) return
+            try {
+                val cn = ComponentName(context.applicationContext, NotificationMonitorService::class.java)
+                requestRebind(cn)
+            } catch (e: Exception) { }
+        }
 
         /** 验证码识别正则：6~8 位数字（可含字母），独立成词或紧邻「验证码/.code」上下文 */
         private val CODE_PATTERN = Regex("(?<![A-Za-z0-9])([A-Z0-9]{4,8}|\\d{4,8})(?![A-Za-z0-9])", RegexOption.IGNORE_CASE)
@@ -52,9 +70,23 @@ class NotificationMonitorService : NotificationListenerService() {
                 app.prefs.pendingMissedSince = disc
             }
             app.prefs.listenerDisconnectedAt = 0L
+            app.prefs.listenerConnectedAt = System.currentTimeMillis()
             if (app.prefs.firstRunAt == 0L) app.prefs.firstRunAt = System.currentTimeMillis()
         }
         KeepAliveService.start(applicationContext)
+    }
+
+    /**
+     * 服务被系统解绑（进程回收/系统清理）时，尽可能立即请求重新绑定。
+     * 权限仍在时 requestRebind 可恢复接管，无需用户手动往返系统设置。
+     */
+    override fun onListenerDisconnected() {
+        (applicationContext as? MaodouApp)?.prefs?.listenerDisconnectedAt = System.currentTimeMillis()
+        try {
+            val cn = ComponentName(applicationContext, NotificationMonitorService::class.java)
+            requestRebind(cn)
+        } catch (e: Exception) { }
+        super.onListenerDisconnected()
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
@@ -66,11 +98,17 @@ class NotificationMonitorService : NotificationListenerService() {
         if (app.prefs.isExcluded(pkg) && app.prefs.excludeNoRecord) return
 
         val extras = sbn.notification.extras ?: Bundle()
-        val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: ""
-        val text = extras.getCharSequence(Notification.EXTRA_TEXT)
-            ?.toString()
-            ?: extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString() ?: ""
-        if (title.isEmpty() && text.isEmpty()) return
+        val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
+            ?: extras.getCharSequence(Notification.EXTRA_TITLE_BIG)?.toString() ?: ""
+        // 正文多来源兜底：普通文本 → 大文本 → 多行文本 → MessagingStyle 最后一条 → ticker
+        val text = extractText(extras)
+        // 标题与正文都为空时，只要通知本身有效就记录（用应用名占位），避免漏记
+        if (title.isEmpty() && text.isEmpty() && sbn.notification.tickerText.isNullOrEmpty()) {
+            // 完全无可读内容的通知（如纯进度条）跳过，避免污染历史
+            return
+        }
+        val finalTitle = title.ifEmpty { sbn.notification.tickerText?.toString() ?: "" }
+        val finalText = text.ifEmpty { sbn.notification.tickerText?.toString() ?: "" }
 
         val appName = try {
             applicationContext.packageManager.getApplicationLabel(
@@ -78,14 +116,14 @@ class NotificationMonitorService : NotificationListenerService() {
             ).toString()
         } catch (e: Exception) { pkg }
 
-        val category = categorize(sbn, title, text)
+        val category = categorize(sbn, finalTitle, finalText)
 
         app.appScope.launch {
             // 排除第二档：记录但不过滤，直接落库后返回
             val excludedNoFilter = app.prefs.isExcluded(pkg) && !app.prefs.excludeNoRecord
 
             val ctx = MatchContext(
-                pkg, appName, title, text, sbn.postTime,
+                pkg, appName, finalTitle, finalText, sbn.postTime,
                 RuleEngine.deviceState(applicationContext).first,
                 RuleEngine.deviceState(applicationContext).second
             )
@@ -95,8 +133,8 @@ class NotificationMonitorService : NotificationListenerService() {
                 NotificationEntity(
                     packageName = pkg,
                     appName = appName,
-                    titleEnc = CryptoHelper.encrypt(title),
-                    textEnc = CryptoHelper.encrypt(text),
+                    titleEnc = CryptoHelper.encrypt(finalTitle),
+                    textEnc = CryptoHelper.encrypt(finalText),
                     timestamp = if (sbn.postTime > 0) sbn.postTime else System.currentTimeMillis(),
                     channel = sbn.notification.channelId,
                     sysKey = sbn.key,
@@ -131,20 +169,20 @@ class NotificationMonitorService : NotificationListenerService() {
             if (match != null) {
                 val outcome = ActionExecutor.execute(
                     applicationContext, saved, match.rule.action, match.rule.actionParam,
-                    text, title
+                    finalText, finalTitle
                 )
                 if (outcome.applied && outcome.result == Result.RULE) {
                     dao.update(saved.copy(result = outcome.result, filterReason = outcome.reason))
                     // 5 秒撤销按钮（FR-E1）：消除且开启时
                     if (app.prefs.undoEnabled && match.rule.action == Actions.DISMISS) {
-                        NotificationBridge.showUndo(applicationContext, id, title)
+                        NotificationBridge.showUndo(applicationContext, id, finalTitle)
                     }
                 } else {
                     saved = saved.copy(filterReason = match.reason + "；" + outcome.reason)
                     dao.update(saved)
                 }
                 // 验证码复制（FR-E3）：即使命中规则也尝试附加复制入口
-                maybeCodeCopy(app, category, title, text, saved)
+                maybeCodeCopy(app, category, finalTitle, finalText, saved)
                 return@launch
             }
 
@@ -152,7 +190,7 @@ class NotificationMonitorService : NotificationListenerService() {
             if (app.prefs.aiEnabled) {
                 val feedback = app.database.aiFeedbackDao().recent(500)
                 val model = SpamScorer.buildModel(feedback) { CryptoHelper.decrypt(it) }
-                val score = SpamScorer.score(title, text, pkg, model)
+                val score = SpamScorer.score(finalTitle, finalText, pkg, model)
                 if (score >= app.prefs.aiThreshold) {
                     try { cancelNotification(sbn.key) } catch (e: Exception) { }
                     dao.update(saved.copy(result = Result.AI, score = score, filterReason = "AI 判定骚扰 $score%"))
@@ -162,7 +200,7 @@ class NotificationMonitorService : NotificationListenerService() {
             }
 
             // 5) 验证码复制（FR-E3）
-            maybeCodeCopy(app, category, title, text, saved)
+            maybeCodeCopy(app, category, finalTitle, finalText, saved)
 
             // 6) AI 闲置/充电学习（FR-A3）：低频触发，避免前台卡顿
             maybeLearn(app)
@@ -204,6 +242,35 @@ class NotificationMonitorService : NotificationListenerService() {
             .map { it.value }
             .firstOrNull { it.length in 4..8 } ?: return
         NotificationBridge.showCodeCopy(applicationContext, entity.id, code)
+    }
+
+    /**
+     * 正文多来源兜底。很多 IM/社交 App 把正文放在不同字段，
+     * 只取 EXTRA_TEXT 会漏掉大量通知，导致「来通知但历史里看不到」。
+     */
+    private fun extractText(extras: Bundle): String {
+        extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.takeIf { it.isNotBlank() }?.let { return it }
+        extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()?.takeIf { it.isNotBlank() }?.let { return it }
+        val lines = extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)
+        if (lines != null && lines.isNotEmpty()) {
+            val joined = lines.joinToString(" | ") { it.toString() }
+            if (joined.isNotBlank()) return joined
+        }
+        // MessagingStyle：取最后一条消息文本（android.messages 为 Parcelable[] Bundle）
+        val msgs = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            extras.getParcelableArray(Notification.EXTRA_MESSAGES, android.os.Parcelable::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            extras.getParcelableArray(Notification.EXTRA_MESSAGES)
+        }
+        if (!msgs.isNullOrEmpty()) {
+            val last = msgs.lastOrNull()
+            if (last is Bundle) {
+                val m = last.getCharSequence("text")?.toString()
+                if (!m.isNullOrBlank()) return m
+            }
+        }
+        return ""
     }
 
     /** 通知类型分类：验证码 / 常驻 / 媒体 / 普通（FR-H2 类型筛选） */

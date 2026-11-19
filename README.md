@@ -3,7 +3,7 @@
 依据 PRD《毛豆通知 v0.1》实现的 Android 原生通知管家：**把每条通知存进可搜索的本地历史，用离线 AI 挡骚扰，其余交给自定义规则**。
 
 - **技术栈**：Kotlin + Jetpack Room + Material 3 + 协程 + ViewBinding
-- **版本**：**v1.3.1**（versionCode 5）· 视觉重制 + 应用锁/保活修复 · 最低 Android 8.0（API 26），目标 Android 15（API 35）
+- **版本**：**v1.3.2**（versionCode 6）· 通知接管/监听可靠性修复 + 应用锁独立密码 · 最低 Android 8.0（API 26），目标 Android 15（API 35）
 - **隐私**：通知内容 AES-256-GCM 加密存本地（密钥在 Android Keystore），零上传；唯一外发通道是用户显式配置的 Webhook
 - **构建**：JDK 17 + Gradle 8.14 + Android SDK 35，`gradle assembleDebug` 已真实编译通过（BUILD SUCCESSFUL）
 
@@ -21,6 +21,18 @@
 - **弹窗**：统一走 `ThemeOverlay.Maodou.Dialog`，表面色与页面一致，单选点为主色，不再出现 Material 默认的偏色底。
 
 ## 更新记录
+
+### v1.3.2 · 通知接管与监听可靠性修复（2026-11-19）
+- **修复「给了权限却监控不到」**：
+  - Manifest 的 `default_filter_types` 补齐 `important`/`vocal`，Android 13+ 不再漏收通知类型。
+  - 正文提取增加多行文本 `EXTRA_TEXT_LINES`、`MessagingStyle`、`ticker` 兜底，聊天类通知不再因正文取不到而被丢弃。
+  - 服务被系统解绑时 `onListenerDisconnected` 主动 `requestRebind`；回到 App（`onResume`）与看门狗周期也会尝试重连。
+- **修复「有记录但不拦截」**：
+  - 首次安装默认开启 AI 骚扰过滤，并种入 3 条开箱即用规则（验证码保护 + 营销广告 + 贷款赌博骚扰），不再是空规则表。
+  - 设置页新增「运行状态」卡片：通知使用权 / 监听服务 / 过滤引擎三态一眼可见，并提供「重新连接监听」按钮。
+  - 重要区分：系统「通知发送权限(POST_NOTIFICATIONS)」≠「通知使用权(Notification Listener)」，只有后者开启才能读取并接管通知。
+- **应用锁独立密码**：开启时自设 4-6 位数字 PIN（加盐 SHA-256 存储，不存明文），下次进入验证该 PIN，可切换指纹/锁屏密码；设置页新增「修改应用锁密码」。
+- 版本升级至 v1.3.2（versionCode 6），沿用 debug.keystore 签名可覆盖安装。
 
 ### v1.3.1 · 应用锁与保活修复（2026-11-19）
 - 修复应用锁开关「点了没反应」：开启时先验证身份，成功后强制下次从后台返回时验证；关闭即时生效并有提示。
