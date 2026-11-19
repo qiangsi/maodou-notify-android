@@ -120,7 +120,7 @@
     <string name="settings_clear_confirm">确定清空全部通知历史和 AI 标注？此操作不可恢复。</string>
     <string name="settings_cleared">已清空</string>
     <string name="settings_about">关于</string>
-    <string name="settings_version">版本 1.4.0 · 数据仅存本机</string>
+    <string name="settings_version">版本 1.4.1 · 数据仅存本机</string>
     <string name="export_done">已导出到文档目录</string>
     <string name="export_failed">导出失败</string>
 
@@ -316,4 +316,25 @@
     <string name="entry_update_failed">无法打开浏览器，请手动访问项目主页</string>
     <string name="entry_feedback_failed">无法打开浏览器，请手动访问项目 Issues 页面</string>
     <string name="about_message">毛豆通知 · 本地通知管家\n版本 %1$s\n\n所有通知仅在你的设备本地加密存储，不上传任何内容。\n支持通知历史、自定义过滤规则、离线 AI 骚扰识别、验证码提取与桌面小部件。\n\n开源项目：github.com/qiangsi/maodou-notify-android</string>
+
+    <!-- v1.4.1 诊断探针 -->
+    <string name="diag_title">通知诊断</string>
+    <string name="diag_entry">运行诊断（排查通知不生效）</string>
+    <string name="diag_run_probe">发送自测通知</string>
+    <string name="diag_watch">观察真实通知</string>
+    <string name="diag_watch_stop">停止观察</string>
+    <string name="diag_refresh">刷新状态</string>
+    <string name="diag_copy">复制报告</string>
+    <string name="diag_logcat">抓取日志</string>
+    <string name="diag_open_permission">通知使用权</string>
+    <string name="probe_notification_title">毛豆通知 · 监听自测</string>
+    <string name="diag_need_post_permission">需要先允许本应用发送通知，才能发出自测通知</string>
+    <string name="diag_probe_sent">已发出自测通知：%1$s\n请等 8 秒后看结果（通知被系统静默也属正常，只看是否被捕获）</string>
+    <string name="diag_probe_ok">监听链路正常：自测通知已被捕获</string>
+    <string name="diag_probe_timeout">未捕获到自测通知：请看报告里的权限与服务状态</string>
+    <string name="diag_copied">报告已复制，可直接粘贴发给开发者</string>
+    <string name="diag_logcat_title">相关日志（最近）</string>
+    <string name="diag_session_started">观察已开始：切到其他 App 发一条通知，回来点「刷新状态」</string>
+    <string name="diag_session_stopped">观察已停止</string>
+    <string name="diag_hint">自测与过滤规则无关，只验证系统是否把通知回调给本应用。</string>
 </resources>

@@ -17,6 +17,7 @@ import com.maodou.notify.engine.ActionExecutor
 import com.maodou.notify.engine.MatchContext
 import com.maodou.notify.engine.RuleEngine
 import com.maodou.notify.engine.SpamScorer
+import com.maodou.notify.util.DiagnosticProbe
 import kotlinx.coroutines.launch
 
 /**
@@ -62,6 +63,7 @@ class NotificationMonitorService : NotificationListenerService() {
 
     override fun onListenerConnected() {
         super.onListenerConnected()
+        DiagnosticProbe.onListenerConnected(applicationContext)
         val app = applicationContext as? MaodouApp
         if (app != null) {
             val disc = app.prefs.listenerDisconnectedAt
@@ -81,6 +83,7 @@ class NotificationMonitorService : NotificationListenerService() {
      * 权限仍在时 requestRebind 可恢复接管，无需用户手动往返系统设置。
      */
     override fun onListenerDisconnected() {
+        DiagnosticProbe.onListenerDisconnected(applicationContext)
         (applicationContext as? MaodouApp)?.prefs?.listenerDisconnectedAt = System.currentTimeMillis()
         try {
             val cn = ComponentName(applicationContext, NotificationMonitorService::class.java)
@@ -90,6 +93,10 @@ class NotificationMonitorService : NotificationListenerService() {
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
+        // v1.4.1 诊断探针：必须在「忽略自身通知」之前旁听，否则自测通知会被丢弃。
+        // 只记录状态、不改通知正文、不影响任何后续处理链路。
+        try { DiagnosticProbe.onNotificationSeen(applicationContext, sbn) } catch (e: Exception) { }
+
         val app = applicationContext as? MaodouApp ?: return
         val pkg = sbn.packageName
         if (pkg == applicationContext.packageName) return // 忽略自身通知

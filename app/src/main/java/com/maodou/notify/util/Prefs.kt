@@ -2,6 +2,9 @@ package com.maodou.notify.util
 
 import android.content.Context
 import android.content.SharedPreferences
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /** 应用设置。仅存开关与阈值，不含任何通知内容。 */
 class Prefs(context: Context) {
@@ -178,6 +181,59 @@ class Prefs(context: Context) {
         get() = sp.getBoolean(KEY_FILTER_PAUSED, false)
         set(value) = sp.edit().putBoolean(KEY_FILTER_PAUSED, value).apply()
 
+    // —— v1.4.1 诊断探针：只记录探针元数据与文本日志，不存储任何通知正文 ——
+    /** 本次自测的随机标记；空=无进行中自测 */
+    var probeToken: String
+        get() = sp.getString(KEY_PROBE_TOKEN, "") ?: ""
+        set(value) = sp.edit().putString(KEY_PROBE_TOKEN, value).apply()
+
+    /** 自测发起时刻 */
+    var probeStartAt: Long
+        get() = sp.getLong(KEY_PROBE_START, 0L)
+        set(value) = sp.edit().putLong(KEY_PROBE_START, value).apply()
+
+    /** 自测结果：0=未开始 1=等待捕获 2=已捕获 */
+    var probeState: Int
+        get() = sp.getInt(KEY_PROBE_STATE, 0)
+        set(value) = sp.edit().putInt(KEY_PROBE_STATE, value).apply()
+
+    /** 会话观察是否激活（统计任意来源通知，用于验证监听链路） */
+    var probeSessionActive: Boolean
+        get() = sp.getBoolean(KEY_PROBE_SESSION, false)
+        set(value) = sp.edit().putBoolean(KEY_PROBE_SESSION, value).apply()
+
+    var probeSessionStartAt: Long
+        get() = sp.getLong(KEY_PROBE_SESSION_START, 0L)
+        set(value) = sp.edit().putLong(KEY_PROBE_SESSION_START, value).apply()
+
+    /** 会话内捕获到的通知条数 */
+    var probeSessionCount: Int
+        get() = sp.getInt(KEY_PROBE_SESSION_COUNT, 0)
+        set(value) = sp.edit().putInt(KEY_PROBE_SESSION_COUNT, value).apply()
+
+    /** 会话内最后一次捕获的包名与时间 */
+    var probeLastPkg: String
+        get() = sp.getString(KEY_PROBE_LAST_PKG, "") ?: ""
+        set(value) = sp.edit().putString(KEY_PROBE_LAST_PKG, value).apply()
+
+    var probeLastAt: Long
+        get() = sp.getLong(KEY_PROBE_LAST_AT, 0L)
+        set(value) = sp.edit().putLong(KEY_PROBE_LAST_AT, value).apply()
+
+    /** 探针事件日志（换行分隔，最多保留 40 条） */
+    var probeLog: String
+        get() = sp.getString(KEY_PROBE_LOG, "") ?: ""
+        set(value) = sp.edit().putString(KEY_PROBE_LOG, value).apply()
+
+    /** 追加一条带时间戳的探针事件（只写状态类信息，不写通知正文） */
+    fun appendProbeLog(message: String) {
+        val ts = SimpleDateFormat("MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+        val lines = probeLog.lines().filter { it.isNotBlank() }.toMutableList()
+        lines.add("$ts $message")
+        while (lines.size > 40) lines.removeAt(0)
+        probeLog = lines.joinToString("\n")
+    }
+
     companion object {
         private const val KEY_AI_ENABLED = "ai_enabled"
         private const val KEY_DEFAULT_RULES_SEEDED = "default_rules_seeded"
@@ -213,5 +269,14 @@ class Prefs(context: Context) {
         private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_THEME_COLOR = "theme_color"
         private const val KEY_FILTER_PAUSED = "filter_paused"
+        private const val KEY_PROBE_TOKEN = "probe_token"
+        private const val KEY_PROBE_START = "probe_start_at"
+        private const val KEY_PROBE_STATE = "probe_state"
+        private const val KEY_PROBE_SESSION = "probe_session_active"
+        private const val KEY_PROBE_SESSION_START = "probe_session_start_at"
+        private const val KEY_PROBE_SESSION_COUNT = "probe_session_count"
+        private const val KEY_PROBE_LAST_PKG = "probe_last_pkg"
+        private const val KEY_PROBE_LAST_AT = "probe_last_at"
+        private const val KEY_PROBE_LOG = "probe_log"
     }
 }

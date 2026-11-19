@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Webhook 转发所需：此前缺失导致所有网络转发静默失败 -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <!-- 通知发出/恢复（Android 13+ 运行时权限） -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- 开机自启，恢复监听 -->
@@ -41,6 +43,7 @@
 
         <activity android:name=".ui.RuleEditActivity" android:exported="false" />
         <activity android:name=".ui.NotificationDetailActivity" android:exported="false" />
+        <activity android:name=".ui.DiagnosticActivity" android:exported="false" />
 
         <!-- 通知监听服务：产品技术底座 -->
         <service

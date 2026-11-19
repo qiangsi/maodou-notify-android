@@ -92,6 +92,9 @@ class SettingsFragment : Fragment() {
             Toast.makeText(requireContext(), R.string.settings_status_rebind_done, Toast.LENGTH_SHORT).show()
             binding.root.postDelayed({ if (_binding != null) refreshStatus() }, 800)
         }
+        binding.btnDiagnostic.setOnClickListener {
+            startActivity(Intent(requireContext(), DiagnosticActivity::class.java))
+        }
 
         // 外观：深浅模式 + 配色（FR-E6），切换即时生效并记忆
         fun refreshThemeLabels() {
