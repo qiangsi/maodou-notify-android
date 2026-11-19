@@ -54,10 +54,16 @@
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
-            <!-- 监听全部通知类型：漏掉 important/vocal 会让大量通知在 Android 13+ 收不到 -->
+            <!--
+              通知类型过滤器：官方要求用竖线 | 分隔，且只接受 4 个合法值
+              (conversations/alerting/silent/ongoing)。
+              v1.4.2 之前误用逗号并塞入 vocal/important/progress 等非法值，
+              AOSP 按竖线解析后得到空列表 → "allow no types" → 一条通知都收不到。
+              v1.4.3 修正为全部 4 种合法类型（等价于允许全部）。
+            -->
             <meta-data
                 android:name="android.service.notification.default_filter_types"
-                android:value="conversations,alerting,vocal,silent,important,ongoing,progress" />
+                android:value="conversations|alerting|silent|ongoing" />
         </service>
 
         <!-- 保活前台服务 -->

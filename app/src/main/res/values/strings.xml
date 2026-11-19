@@ -120,7 +120,7 @@
     <string name="settings_clear_confirm">确定清空全部通知历史和 AI 标注？此操作不可恢复。</string>
     <string name="settings_cleared">已清空</string>
     <string name="settings_about">关于</string>
-    <string name="settings_version">版本 1.4.2 · 数据仅存本机</string>
+    <string name="settings_version">版本 1.4.3 · 数据仅存本机</string>
     <string name="export_done">已导出到文档目录</string>
     <string name="export_failed">导出失败</string>
 

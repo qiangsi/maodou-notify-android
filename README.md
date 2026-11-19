@@ -3,7 +3,7 @@
 依据 PRD《毛豆通知 v0.1》实现的 Android 原生通知管家：**把每条通知存进可搜索的本地历史，用离线 AI 挡骚扰，其余交给自定义规则**。
 
 - **技术栈**：Kotlin + Jetpack Room + Material 3 + 协程 + ViewBinding
-- **版本**：**v1.4.2**（versionCode 9）· 修复监听服务「假连接」死循环 · 最低 Android 8.0（API 26），目标 Android 15（API 35）
+- **版本**：**v1.4.3**（versionCode 10）· 修复通知类型过滤器为空导致完全收不到通知 · 最低 Android 8.0（API 26），目标 Android 15（API 35）
 - **隐私**：通知内容 AES-256-GCM 加密存本地（密钥在 Android Keystore），零上传；唯一外发通道是用户显式配置的 Webhook
 - **构建**：JDK 17 + Gradle 8.14 + Android SDK 35，`gradle assembleDebug` 已真实编译通过（BUILD SUCCESSFUL）
 
@@ -21,6 +21,12 @@
 - **弹窗**：统一走 `ThemeOverlay.Maodou.Dialog`，表面色与页面一致，单选点为主色，不再出现 Material 默认的偏色底。
 
 ## 更新记录
+
+### v1.4.3 · 修复「通知类型过滤器为空」导致完全收不到通知（2026-11-20）
+- **确诊根因**：`AndroidManifest.xml` 的 `default_filter_types` 用逗号分隔并塞入 `vocal/important/progress` 等非法值。AOSP 规定必须用竖线 `|` 分隔、且只接受 `conversations|alerting|silent|ongoing` 四种。系统按竖线解析旧值得到空列表，而官方规则是「有值但为空 = 不允许任何类型」（AOSP: *A present but empty value means 'allow no types'*）。于是监听服务能绑定、`onListenerConnected` 正常触发，但系统不分发任何通知，`onNotificationPosted` 永不执行、历史始终为 0——与权限/保活/过滤规则均无关。
+- **修复**：Manifest 改为官方格式 `conversations|alerting|silent|ongoing`；诊断报告新增「允许的通知类型」一行，「一句话诊断」与「自动结论」可直接识别该根因。
+- **重要 · 升级后必须重新授权**：AOSP 注明该 meta-data 只在应用**首次绑定监听时读取**，覆盖安装不会刷新已缓存的空列表。装完请：系统设置 → 通知使用权 → 关闭毛豆通知 → 从最近任务划掉 App → 重开 → 重新打开通知使用权 → 跑自测。报告「允许的通知类型」显示四种类型且自测显示"监听链路正常"即解决。
+- versionCode 10，沿用 debug.keystore 可覆盖安装。
 
 ### v1.4.2 · 修复监听服务「假连接」死循环（2026-11-19）
 - **根因**：旧版用「服务实例存在」(`instance != null`) 判断监听是否连上，但 `onCreate` 只代表进程内创建了对象，不代表系统真正绑定了 listener（真正标志是 `onListenerConnected`）。国产 ROM 上常见「实例存在但从未连接」的假连接：设置页显示已授权/运行中，`onNotificationPosted` 却永不触发；而重连函数看到 `instance != null` 直接跳过，永远无法自愈。

@@ -46,6 +46,36 @@ class NotificationMonitorService : NotificationListenerService() {
         val isConnected: Boolean get() = connected
 
         /**
+         * 读取系统当前实际允许本监听器接收的通知类型（API 33+）。
+         * v1.4.3 诊断用：若返回空，说明系统把本监听器允许的类型判为空 —— 一条通知都分发不过来。
+         * 这是 v1.4.2 之前 Manifest 写错 default_filter_types（逗号+非法值）留下的后遗症，
+         * 需要撤销并重新授予通知使用权让系统重新读取。
+         */
+        fun allowedTypesText(): String {
+            if (Build.VERSION.SDK_INT < 33) return "全部（系统无类型过滤）"
+            val s = instance ?: return "未知（服务未连接）"
+            return try {
+                // 用反射调用 API 33 的 getAllowedNotificationTypes()，避免 compileSdk 版本限制
+                val m = Class.forName("android.service.notification.NotificationListenerService")
+                    .getMethod("getAllowedNotificationTypes")
+                val arr = m.invoke(s) as? IntArray
+                if (arr == null || arr.isEmpty()) {
+                    "空 ← 系统拒绝一切通知（本次确诊根因，需撤销并重新授权）"
+                } else {
+                    // 位标志：conversations=1, alerting=2, silent=4, ongoing=8
+                    val parts = mutableListOf<String>()
+                    if (arr.any { (it and 1) != 0 }) parts += "conversations"
+                    if (arr.any { (it and 2) != 0 }) parts += "alerting"
+                    if (arr.any { (it and 4) != 0 }) parts += "silent"
+                    if (arr.any { (it and 8) != 0 }) parts += "ongoing"
+                    parts.joinToString("|").ifBlank { "未识别：${arr.joinToString(",")}" }
+                }
+            } catch (e: Exception) {
+                "读取失败：${e.javaClass.simpleName}"
+            }
+        }
+
+        /**
          * 请求系统重新绑定监听服务。
          * 关键修复：过去用 instance != null 判断，导致「假连接」时永远跳过重绑。
          * 现在只要未真正 connected 就主动 rebind。

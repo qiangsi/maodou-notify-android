@@ -157,10 +157,13 @@ object DiagnosticProbe {
         // 顶部一句话诊断：把最关键的状态先摆出来，避免用户漏看
         val topListenerOn = isListenerEnabled(ctx)
         val topConnected = NotificationMonitorService.isConnected
+        val topAllowed = NotificationMonitorService.allowedTypesText()
+        val allowedEmpty = topAllowed.startsWith("空")
         val headline = when {
             !topListenerOn -> "❌ 通知使用权未授予 —— 去系统「通知使用权」打开毛豆通知"
-            !topConnected -> "❌ 假连接：权限已给，但监听服务没有真正连上系统（本次修复重点）"
-            else -> "✅ 通知使用权与监听服务均正常 —— 若不拦截，问题在过滤配置层"
+            !topConnected -> "❌ 假连接：权限已给，但监听服务没有真正连上系统"
+            allowedEmpty -> "❌ 通知类型被系统判为空 —— 服务已连上但收不到任何通知（v1.4.3 确诊根因），需撤销并重新授权"
+            else -> "✅ 权限、连接、通知类型均正常 —— 若仍不拦截，问题在过滤配置层"
         }
 
         sb.appendLine("===== 毛豆通知 · 诊断报告 =====")
@@ -205,6 +208,7 @@ object DiagnosticProbe {
         val da = p.listenerDisconnectedAt
         sb.appendLine("【3. 服务状态】")
         sb.appendLine("监听真正连接(onListenerConnected)：${if (connected) "已连接 ✅" else "未连接 ❌ ← 重点"}")
+        sb.appendLine("允许的通知类型：${NotificationMonitorService.allowedTypesText()}")
         sb.appendLine("最近连接时间：${if (ca > 0) "${fmt.format(Date(ca))}（${(now - ca) / 60000} 分钟前）" else "从未连接"}")
         sb.appendLine("最近断开(onListenerDisconnected)：${if (da > 0) fmt.format(Date(da)) else "无"}")
         sb.appendLine("保活前台服务：${serviceState(ctx, KeepAliveService::class.java.name)}")
@@ -254,7 +258,7 @@ object DiagnosticProbe {
             log.lines().takeLast(20).forEach { sb.appendLine(it) }
         }
         sb.appendLine()
-        sb.appendLine(conclusion(listenerOn, connected, ca, state, p.probeSessionCount, p.filterPaused, enabledRules))
+        sb.appendLine(conclusion(listenerOn, connected, allowedEmpty, ca, state, p.probeSessionCount, p.filterPaused, enabledRules))
         return sb.toString()
     }
 
@@ -306,6 +310,7 @@ object DiagnosticProbe {
     private fun conclusion(
         listenerOn: Boolean,
         connected: Boolean,
+        allowedEmpty: Boolean,
         connectedAt: Long,
         probeState: Int,
         sessionCount: Int,
@@ -335,6 +340,14 @@ object DiagnosticProbe {
                 sb.appendLine("  · 确认规则关键词与通知内容匹配；确认通知不在排除名单。")
                 sb.appendLine("  · 注意：替换内容/改铃声等动作受系统限制本就不会生效，只有「消除通知(DISMISS)」能真正拦掉。")
             }
+            allowedEmpty -> sb.appendLine(
+                "★通知类型过滤器为空（本次确诊根因）：监听服务虽已连上，但系统不允许把任何类型的通知分发给本应用，" +
+                    "所以 onNotificationPosted 永不触发、历史始终为 0。原因是旧版本 Manifest 的 " +
+                    "default_filter_types 写错（用逗号且含非法值），系统首次绑定时记住了空列表。" +
+                    "v1.4.3 已把格式改为官方的 conversations|alerting|silent|ongoing，但系统只在首次绑定时读取，" +
+                    "因此必须：系统设置 → 通知使用权 → 关掉毛豆通知 → 彻底退出 App → 再重新打开，" +
+                    "让系统用新配置重新绑定。做完再跑一次自测。"
+            )
             else -> sb.appendLine(
                 "监听服务已连接，但自测与会话观察都没捕获到通知。可能被 ROM 限制了回调，" +
                     "建议点「强制重连监听」→ 完全退出应用重开 → 再跑一次自测；" +
