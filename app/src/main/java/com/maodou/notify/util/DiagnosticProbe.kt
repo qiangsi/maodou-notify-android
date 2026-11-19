@@ -159,10 +159,17 @@ object DiagnosticProbe {
         val topConnected = NotificationMonitorService.isConnected
         val topAllowed = NotificationMonitorService.allowedTypesText()
         val allowedEmpty = topAllowed.startsWith("空")
+        val allowedUnknown = topAllowed.contains("不可读") || topAllowed.contains("未知") || topAllowed.contains("读取失败")
+        val topState = p.probeState
+        val topSessionCount = p.probeSessionCount
+        val noCaptureAtAll = topState != STATE_CAPTURED && topSessionCount == 0 &&
+            runBlocking { try { MaodouApp.instance.database.notificationDao().countAll() } catch (e: Exception) { 1 } } == 0
         val headline = when {
             !topListenerOn -> "❌ 通知使用权未授予 —— 去系统「通知使用权」打开毛豆通知"
             !topConnected -> "❌ 假连接：权限已给，但监听服务没有真正连上系统"
-            allowedEmpty -> "❌ 通知类型被系统判为空 —— 服务已连上但收不到任何通知（v1.4.3 确诊根因），需撤销并重新授权"
+            allowedEmpty -> "❌ 通知类型被系统判为空 —— 服务已连上但收不到任何通知，需卸载重装让系统重读配置"
+            noCaptureAtAll -> "❌ 服务已连上但一条通知都没收到 —— 权限/类型看似正常，系统未把通知分发过来（见第7节）"
+            allowedUnknown -> "⚠️ 无法读取系统通知类型，无法确认；请看下方的声明值与系统设置里的通知类型开关"
             else -> "✅ 权限、连接、通知类型均正常 —— 若仍不拦截，问题在过滤配置层"
         }
 
@@ -341,17 +348,18 @@ object DiagnosticProbe {
                 sb.appendLine("  · 注意：替换内容/改铃声等动作受系统限制本就不会生效，只有「消除通知(DISMISS)」能真正拦掉。")
             }
             allowedEmpty -> sb.appendLine(
-                "★通知类型过滤器为空（本次确诊根因）：监听服务虽已连上，但系统不允许把任何类型的通知分发给本应用，" +
-                    "所以 onNotificationPosted 永不触发、历史始终为 0。原因是旧版本 Manifest 的 " +
-                    "default_filter_types 写错（用逗号且含非法值），系统首次绑定时记住了空列表。" +
-                    "v1.4.3 已把格式改为官方的 conversations|alerting|silent|ongoing，但系统只在首次绑定时读取，" +
-                    "因此必须：系统设置 → 通知使用权 → 关掉毛豆通知 → 彻底退出 App → 再重新打开，" +
-                    "让系统用新配置重新绑定。做完再跑一次自测。"
+                "★通知类型过滤器为空：监听服务已连上，但系统不允许把任何类型的通知分发给本应用，" +
+                    "所以 onNotificationPosted 永不触发、历史始终为 0。旧版 Manifest 的 default_filter_types " +
+                    "写错（逗号+非法值），系统首次安装时记住了空列表。v1.4.3 已改为官方格式，" +
+                    "但系统只在安装时读取一次——撤销重授权往往不够。请卸载本应用后重新安装并重新授权，" +
+                    "让系统按新配置生成通知类型列表。重装后再跑自测。"
             )
             else -> sb.appendLine(
-                "监听服务已连接，但自测与会话观察都没捕获到通知。可能被 ROM 限制了回调，" +
-                    "建议点「强制重连监听」→ 完全退出应用重开 → 再跑一次自测；" +
-                    "并确认自测通知确实出现在通知栏（若连自测通知都不显示，是通知发送权限问题）。"
+                "★服务已连上但一条通知都收不到（自测/会话/历史全为 0）：权限与连接都显示正常，" +
+                    "问题在系统没有把通知分发过来。请按顺序做三件事：① 打开系统「设置 → 通知使用权 → 毛豆通知」，" +
+                    "看清里面是否有「通知类型 / 允许查看的通知」子开关，如果有，把对话/提醒/静默全部打开；" +
+                    "② 卸载本应用后重装（不是覆盖）——默认通知类型只在安装时按 Manifest 生成，覆盖不会刷新；" +
+                    "③ 重装后重新授权并跑自测。若仍不行，请到系统「通知使用权」页截图发我，我看子开关状态。"
             )
         }
         return sb.toString()

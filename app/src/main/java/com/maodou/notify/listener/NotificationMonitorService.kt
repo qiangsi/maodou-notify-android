@@ -52,27 +52,35 @@ class NotificationMonitorService : NotificationListenerService() {
          * 需要撤销并重新授予通知使用权让系统重新读取。
          */
         fun allowedTypesText(): String {
-            if (Build.VERSION.SDK_INT < 33) return "全部（系统无类型过滤）"
             val s = instance ?: return "未知（服务未连接）"
-            return try {
-                // 用反射调用 API 33 的 getAllowedNotificationTypes()，避免 compileSdk 版本限制
-                val m = Class.forName("android.service.notification.NotificationListenerService")
-                    .getMethod("getAllowedNotificationTypes")
-                val arr = m.invoke(s) as? IntArray
-                if (arr == null || arr.isEmpty()) {
-                    "空 ← 系统拒绝一切通知（本次确诊根因，需撤销并重新授权）"
-                } else {
-                    // 位标志：conversations=1, alerting=2, silent=4, ongoing=8
-                    val parts = mutableListOf<String>()
-                    if (arr.any { (it and 1) != 0 }) parts += "conversations"
-                    if (arr.any { (it and 2) != 0 }) parts += "alerting"
-                    if (arr.any { (it and 4) != 0 }) parts += "silent"
-                    if (arr.any { (it and 8) != 0 }) parts += "ongoing"
-                    parts.joinToString("|").ifBlank { "未识别：${arr.joinToString(",")}" }
-                }
-            } catch (e: Exception) {
-                "读取失败：${e.javaClass.simpleName}"
+            // 1) 反射尝试不同 API 级别上的方法名（部分 ROM 上不存在或签名不同）
+            for (mn in arrayOf("getAllowedNotificationTypes", "getNotificationTypes")) {
+                try {
+                    val m = s.javaClass.getMethod(mn)
+                    val arr = m.invoke(s) as? IntArray
+                    if (arr != null) {
+                        if (arr.isEmpty()) {
+                            return "空 ← 系统不允许任何类型（需卸载重装让系统重读配置）"
+                        }
+                        // 位标志：conversations=1, alerting=2, silent=4, ongoing=8
+                        val parts = mutableListOf<String>()
+                        if (arr.any { (it and 1) != 0 }) parts += "conversations"
+                        if (arr.any { (it and 2) != 0 }) parts += "alerting"
+                        if (arr.any { (it and 4) != 0 }) parts += "silent"
+                        if (arr.any { (it and 8) != 0 }) parts += "ongoing"
+                        return parts.joinToString("|").ifBlank { "未识别：${arr.joinToString(",")}" }
+                    }
+                } catch (e: Exception) { }
             }
+            // 2) 系统接口读不到时，回退读 APK 声明值 + 当前可见通知数，避免误报「均正常」
+            val declared = try {
+                val ai = s.packageManager.getServiceInfo(
+                    ComponentName(s, NotificationMonitorService::class.java), 0
+                )
+                ai.metaData?.getString("android.service.notification.default_filter_types") ?: "(未声明)"
+            } catch (e: Exception) { "(读取失败)" }
+            val active = try { s.activeNotifications?.size ?: -1 } catch (e: Exception) { -1 }
+            return "系统接口不可读；本版声明=$declared；当前可见通知=$active 条"
         }
 
         /**
