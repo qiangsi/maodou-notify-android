@@ -274,10 +274,10 @@
     <!-- v1.6.2 购买引导：把「付款后向开发者索取」这句死胡同补成可执行闭环 -->
     <string name="pro_buy_title">获取 Pro 激活码</string>
     <string name="pro_buy_price">周卡 ¥1（7 天）　·　永久 ¥18（一次买断）</string>
-    <string name="pro_buy_steps">① 用微信 / 支付宝扫下方收款码付款，金额对应所选套餐\n② 付款后点「联系开发者」，附上付款截图并注明周卡或永久\n③ 收到 MD1- 开头的激活码后，回到解锁面板粘贴即可\n\n码不记名、可转赠；离线校验，不联网、不需要账号。</string>
-    <string name="pro_buy_qr_hint">收款码 · 点按放大后截图扫码</string>
-    <string name="pro_buy_qr_missing">收款码图片尚未放进应用，请先点「联系开发者」留言索取付款方式，我会把收款码与激活码一起发给你</string>
-    <string name="pro_buy_qr_zoom">收款码（再次点按关闭）</string>
+    <string name="pro_buy_steps">① 用微信扫下方收款码付款，金额对应所选套餐\n　 付款前请核对收款人显示为「四十二(**利)」\n② 本机扫不了自己屏幕：可用另一台手机扫，或点按下方收款码放大后截图，再用微信「扫一扫 → 相册」识别\n③ 付款后点「联系开发者」，附上付款截图并注明周卡或永久\n④ 收到 MD1- 开头的激活码后，回到解锁面板粘贴即可\n\n码不记名、可转赠；离线校验，不联网、不需要账号。</string>
+    <string name="pro_buy_qr_hint">微信收款码 · 收款人 四十二(**利) · 点按放大</string>
+    <string name="pro_buy_qr_missing">当前为开源社区构建，未内置收款码。请下载官方发布包，或点「联系开发者」获取付款方式</string>
+    <string name="pro_buy_qr_zoom">收款码（点按关闭 · 截图后用微信「扫一扫 → 相册」识别）</string>
     <string name="pro_buy_contact">联系开发者</string>
     <string name="pro_buy_back">返回输入激活码</string>
     <string name="pro_buy_open_fail">无法打开浏览器，请手动访问 github.com/qiangsi/maodou-notify-android/issues</string>

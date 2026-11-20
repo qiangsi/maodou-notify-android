@@ -225,15 +225,23 @@ object ProSheet {
 
     /** 点按收款码放大，方便截图扫码（不请求存储权限、不写文件）。 */
     private fun showQrZoom(context: Context, qrId: Int) {
+        val dm = context.resources.displayMetrics
+        // v1.6.3：限制放大视图宽度，避免二维码被对话框裁切导致截不全、扫不出
+        val maxW = minOf((dm.widthPixels * 0.82).toInt(), (420 * dm.density).toInt())
         val iv = ImageView(context).apply {
             setImageResource(qrId)
             adjustViewBounds = true
             scaleType = ImageView.ScaleType.FIT_CENTER
             setPadding(16, 16, 16, 16)
         }
+        val wrap = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            addView(iv, LinearLayout.LayoutParams(maxW, LinearLayout.LayoutParams.WRAP_CONTENT))
+        }
         val dialog = MaterialAlertDialogBuilder(context)
             .setTitle(R.string.pro_buy_qr_zoom)
-            .setView(iv)
+            .setView(wrap)
             .setPositiveButton(R.string.action_ok, null)
             .create()
         iv.setOnClickListener { dialog.dismiss() }
