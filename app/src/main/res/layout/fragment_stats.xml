@@ -29,7 +29,7 @@
             android:textColor="@color/text_tertiary"
             android:textSize="12sp" />
 
-        <!-- 关键指标 -->
+        <!-- 关键指标：点按任一数字跳转到历史页并自动应用对应筛选 -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -44,11 +44,15 @@
                 android:paddingBottom="16dp">
 
                 <LinearLayout
+                    android:id="@+id/stat_total"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true">
 
                     <TextView
                         android:id="@+id/tv_total"
@@ -75,11 +79,15 @@
                     android:background="@color/divider" />
 
                 <LinearLayout
+                    android:id="@+id/stat_filtered"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true">
 
                     <TextView
                         android:id="@+id/tv_filtered"
@@ -106,11 +114,15 @@
                     android:background="@color/divider" />
 
                 <LinearLayout
+                    android:id="@+id/stat_learned"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true">
 
                     <TextView
                         android:id="@+id/tv_learned"

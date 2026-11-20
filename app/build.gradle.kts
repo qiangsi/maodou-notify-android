@@ -4,6 +4,9 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+// 开源社区版构建脚本：不含任何授权密钥注入逻辑。
+// Pro 授权内核在公开仓库中提供占位实现（校验恒不通过），因此不需要任何构建期密钥。
+// 官方发布构建使用本地私有配置，二者互不影响。
 android {
     namespace = "com.maodou.notify"
     compileSdk = 35
@@ -12,14 +15,15 @@ android {
         applicationId = "com.maodou.notify"
         minSdk = 26
         targetSdk = 35
-        versionCode = 13
-        versionName = "1.6.0"
+        versionCode = 14
+        versionName = "1.6.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }

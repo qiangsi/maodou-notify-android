@@ -95,6 +95,17 @@ class StatsFragment : Fragment() {
                 showWeeklyReport()
             }
         }
+
+        // v1.6.1 指标数字可下钻：点数字直达历史页对应筛选，形成「统计 → 明细」闭环
+        binding.statTotal.setOnClickListener {
+            (activity as? MainActivity)?.openHistoryWithFilter(HistoryFragment.FILTER_ALL)
+        }
+        binding.statFiltered.setOnClickListener {
+            (activity as? MainActivity)?.openHistoryWithFilter(HistoryFragment.FILTER_FILTERED)
+        }
+        binding.statLearned.setOnClickListener {
+            (activity as? MainActivity)?.openHistoryWithFilter(HistoryFragment.FILTER_LEARNED)
+        }
         refresh()
     }
 

@@ -82,7 +82,8 @@ object ProSheet {
         })
         val input = EditText(context).apply {
             hint = context.getString(R.string.pro_dialog_hint)
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
+            // v1.6.1：激活码内含区分大小写的 Base64URL，不能再强制键盘大写
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
             setSingleLine(true)
             setText(prefs.proCode)
             setTextColor(textMain)

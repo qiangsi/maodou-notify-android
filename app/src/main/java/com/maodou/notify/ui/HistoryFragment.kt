@@ -44,9 +44,18 @@ class HistoryFragment : Fragment() {
     private var app: MaodouApp? = null
 
     companion object {
-        private const val FILTER_ALL = 0
-        private const val FILTER_KEPT = 1
-        private const val FILTER_FILTERED = 2
+        const val FILTER_ALL = 0
+        const val FILTER_KEPT = 1
+        const val FILTER_FILTERED = 2
+        /** 已学习样本：用户手动标注过（marked != null）的通知，用于回归 AI 学习成果 */
+        const val FILTER_LEARNED = 3
+
+        private const val ARG_FILTER = "init_filter"
+
+        /** 由统计页指标数字跳转进来时，带一个初始筛选维度 */
+        fun newInstance(filter: Int = FILTER_ALL) = HistoryFragment().apply {
+            arguments = Bundle().apply { putInt(ARG_FILTER, filter) }
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -75,9 +84,22 @@ class HistoryFragment : Fragment() {
             filter = when (checkedId) {
                 R.id.chip_kept -> FILTER_KEPT
                 R.id.chip_filtered -> FILTER_FILTERED
+                R.id.chip_learned -> FILTER_LEARNED
                 else -> FILTER_ALL
             }
             applyList()
+        }
+
+        // 统计页数字跳转：按传入的初始维度选中对应 chip（singleSelection 会自动取消其它）
+        when (arguments?.getInt(ARG_FILTER, FILTER_ALL) ?: FILTER_ALL) {
+            FILTER_KEPT -> binding.chipKept.isChecked = true
+            FILTER_FILTERED -> binding.chipFiltered.isChecked = true
+            FILTER_LEARNED -> binding.chipLearned.isChecked = true
+            else -> binding.chipAll.isChecked = true
+        }
+        // 「已学习样本」在最右侧，确保跳转过来时能看见被选中的 chip
+        if (filter == FILTER_LEARNED) {
+            binding.filterScroll.post { binding.filterScroll.fullScroll(View.FOCUS_RIGHT) }
         }
 
         // 日期选择（FR-H3）
@@ -153,6 +175,7 @@ class HistoryFragment : Fragment() {
         var list = all
         if (filter == FILTER_KEPT) list = list.filter { it.result == Result.KEPT }
         if (filter == FILTER_FILTERED) list = list.filter { it.result != Result.KEPT }
+        if (filter == FILTER_LEARNED) list = list.filter { it.marked != null }
         if (selectedType != null) list = list.filter { it.category == selectedType }
         if (selectedDay != null) list = list.filter {
             SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it.timestamp)) == selectedDay
@@ -183,7 +206,8 @@ class HistoryFragment : Fragment() {
         }
 
         binding.tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
-        binding.tvEmpty.text = if (selectedDay != null || selectedType != null || keyword.isNotEmpty())
+        binding.tvEmpty.text = if (selectedDay != null || selectedType != null ||
+            keyword.isNotEmpty() || filter != FILTER_ALL)
             getString(R.string.history_no_result) else getString(R.string.empty_history)
     }
 

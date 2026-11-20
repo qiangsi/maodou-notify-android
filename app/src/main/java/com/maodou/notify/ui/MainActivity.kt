@@ -21,6 +21,8 @@ import com.maodou.notify.util.openListenerSettings
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    /** 统计页指标数字跳转时暂存的初始筛选维度，切到历史 tab 时消费 */
+    private var pendingHistoryFilter: Int = HistoryFragment.FILTER_ALL
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(ThemeHelper.themeStyle((application as MaodouApp).prefs.themeColor))
@@ -30,7 +32,10 @@ class MainActivity : AppCompatActivity() {
 
         binding.bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_history -> switchFragment(HistoryFragment())
+                R.id.nav_history -> {
+                    switchFragment(HistoryFragment.newInstance(pendingHistoryFilter))
+                    pendingHistoryFilter = HistoryFragment.FILTER_ALL
+                }
                 R.id.nav_rules -> switchFragment(RulesFragment())
                 R.id.nav_stats -> switchFragment(StatsFragment())
                 R.id.nav_settings -> switchFragment(SettingsFragment())
@@ -42,6 +47,18 @@ class MainActivity : AppCompatActivity() {
         }
 
         checkPermissions()
+    }
+
+    /** 供 StatsFragment 调用：切到历史页并按指定维度筛选 */
+    fun openHistoryWithFilter(filter: Int) {
+        pendingHistoryFilter = filter
+        if (binding.bottomNav.selectedItemId == R.id.nav_history) {
+            // 已在历史页时 selectedItemId 不变、不会触发 listener，需直接替换
+            switchFragment(HistoryFragment.newInstance(filter))
+            pendingHistoryFilter = HistoryFragment.FILTER_ALL
+        } else {
+            binding.bottomNav.selectedItemId = R.id.nav_history
+        }
     }
 
     private fun switchFragment(fragment: Fragment) {

@@ -29,6 +29,7 @@
     <string name="filter_all">全部</string>
     <string name="filter_kept">已保留</string>
     <string name="filter_filtered">已过滤</string>
+    <string name="filter_learned">已学习样本</string>
     <string name="badge_kept">保留</string>
     <string name="badge_filtered">已过滤</string>
     <string name="restore_notification">恢复通知</string>
@@ -246,7 +247,7 @@
     <string name="pro_card_subtitle">重要守护 · 验证码保险箱 · 清净周报</string>
     <string name="pro_status_free">免费版 · 点此了解 Pro</string>
     <string name="pro_dialog_title">解锁 Pro</string>
-    <string name="pro_dialog_hint">输入激活码（MD1-开头）</string>
+    <string name="pro_dialog_hint">输入激活码（MD1- 开头，区分大小写）</string>
     <string name="pro_dialog_benefits">Pro 权益：\n· 重要通知守护：白名单绝不误杀，可二次强提醒\n· 验证码保险箱：所有码自动归档，划掉也能找回\n· 清净周报：战绩卡一键生成、可分享\n· 另含：导出全部历史 / 无限历史保留 / 30 天统计\n\n周卡 ¥1（7 天）· 永久 ¥18 一次买断\n付款后向开发者获取激活码，输入下方即可解锁。</string>
     <string name="pro_activate">激活</string>
     <string name="pro_activate_ok">激活成功，Pro 已解锁</string>
@@ -309,7 +310,7 @@
     <string name="widget_active">过滤中</string>
     <string name="widget_today">今日通知</string>
     <string name="rules_subtitle">按顺序匹配，命中第一条即执行</string>
-    <string name="stats_subtitle">近段时间的过滤效果与来源分布</string>
+    <string name="stats_subtitle">近段时间的过滤效果与来源分布 · 点按上方数字查看明细</string>
     <string name="settings_filter">过滤</string>
     <string name="rule_add">新建规则</string>
     <string name="rule_condition">匹配条件</string>
