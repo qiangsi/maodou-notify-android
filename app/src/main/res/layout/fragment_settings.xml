@@ -87,6 +87,129 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- ============ v1.6.0 Pro 专属功能入口 ============ -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            style="@style/Widget.Maodou.Card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/row_vip_guard"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/row_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp">
+
+                    <ImageView
+                        android:layout_width="@dimen/icon_tile"
+                        android:layout_height="@dimen/icon_tile"
+                        android:background="@drawable/bg_icon_tile"
+                        android:contentDescription="@null"
+                        android:padding="@dimen/icon_tile_padding"
+                        android:src="@drawable/ic_shield"
+                        android:tint="?attr/colorPrimary" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/vip_guard_title"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/tv_vip_guard_status"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="@string/vip_guard_status_off"
+                            android:textAppearance="@style/TextAppearance.Maodou.Caption" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_chevron_right"
+                        android:tint="@color/text_tertiary" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="62dp"
+                    android:background="@color/divider" />
+
+                <LinearLayout
+                    android:id="@+id/row_code_vault"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/row_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp">
+
+                    <ImageView
+                        android:layout_width="@dimen/icon_tile"
+                        android:layout_height="@dimen/icon_tile"
+                        android:background="@drawable/bg_icon_tile"
+                        android:contentDescription="@null"
+                        android:padding="@dimen/icon_tile_padding"
+                        android:src="@drawable/ic_copy"
+                        android:tint="?attr/colorPrimary" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/code_vault_title"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="@string/code_vault_desc"
+                            android:textAppearance="@style/TextAppearance.Maodou.Caption" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_chevron_right"
+                        android:tint="@color/text_tertiary" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- ============ 权限 ============ -->
         <TextView
             android:layout_width="wrap_content"

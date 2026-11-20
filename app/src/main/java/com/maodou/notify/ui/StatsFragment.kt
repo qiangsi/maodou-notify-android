@@ -3,6 +3,7 @@ package com.maodou.notify.ui
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Bundle
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,6 +19,7 @@ import com.maodou.notify.data.PackageCount
 import com.maodou.notify.data.Result
 import com.maodou.notify.databinding.FragmentStatsBinding
 import com.maodou.notify.util.ProHelper
+import com.maodou.notify.util.ProSheet
 import com.maodou.notify.util.ThemeHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,6 +36,11 @@ class StatsFragment : Fragment() {
     private lateinit var app: MaodouApp
     private var scope = SCOPE_ALL
     private var days = 7
+    private var settingChip = false
+    // v1.6.0 清净周报：留存最近一次统计结果，供分享卡复用
+    private var lastTotal = 0
+    private var lastFiltered = 0
+    private var lastTopApp = ""
 
     companion object {
         private const val SCOPE_ALL = 0
@@ -58,17 +65,35 @@ class StatsFragment : Fragment() {
             refresh()
         }
         binding.chipWindow.setOnCheckedChangeListener { _, checkedId ->
+            if (settingChip) return@setOnCheckedChangeListener
             if (checkedId == R.id.chip_30d && !ProHelper.isActive(app.prefs)) {
-                // 免费版仅 7 天统计；30 天窗口需 Pro
-                android.widget.Toast.makeText(
-                    requireContext(), R.string.pro_free_locked, android.widget.Toast.LENGTH_LONG
-                ).show()
-                days = 7
+                // v1.6.0：修复「点解锁没反应」——不再弹死 Toast，改为真正可激活的面板，
+                // 且激活成功后立即兑现刚才被拦下的操作（自动切到 30 天）。
+                settingChip = true
                 binding.chip7d.isChecked = true
+                settingChip = false
+                days = 7
+                ProSheet.gate(
+                    requireContext(), app.prefs,
+                    getString(R.string.pro_feature_stats_30d)
+                ) {
+                    settingChip = true
+                    binding.chip30d.isChecked = true
+                    settingChip = false
+                    days = 30
+                    refresh()
+                }
             } else {
                 days = if (checkedId == R.id.chip_30d) 30 else 7
             }
             refresh()
+        }
+
+        // v1.6.0 清净周报：战绩卡一键生成 + 分享（Pro）
+        binding.btnWeekly.setOnClickListener {
+            ProSheet.gate(requireContext(), app.prefs, getString(R.string.pro_feature_weekly)) {
+                showWeeklyReport()
+            }
         }
         refresh()
     }
@@ -129,6 +154,10 @@ class StatsFragment : Fragment() {
                 binding.tvTotal.text = total.toString()
                 binding.tvFiltered.text = filtered.toString()
                 binding.tvLearned.text = learned.toString()
+                // v1.6.0 留存周报素材
+                lastTotal = total
+                lastFiltered = filtered
+                lastTopApp = rank.firstOrNull()?.let { labels[it.packageName] ?: it.packageName } ?: ""
 
                 // 趋势条
                 binding.dailyContainer.removeAllViews()
@@ -174,6 +203,34 @@ class StatsFragment : Fragment() {
         )
         bar.progressTintList = ColorStateList.valueOf(primary)
         bar.progressBackgroundTintList = ColorStateList.valueOf(requireContext().getColor(R.color.surface_alt))
+    }
+
+    /**
+     * v1.6.0 清净周报：把「过滤战绩」变成可炫耀、可分享的爽感内容。
+     * 这类「情绪价值 + 可传播」的功能，比导出 CSV 之类事后查看型更有付费冲动。
+     */
+    private fun showWeeklyReport() {
+        if (lastTotal <= 0) {
+            android.widget.Toast.makeText(requireContext(), R.string.weekly_empty, android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
+        val ratio = if (lastTotal > 0) lastFiltered.toFloat() / lastTotal else 0f
+        // 清净指数：过滤占比映射到 60~99，挡得越多越清净
+        val score = (60 + ratio * 39).toInt().coerceIn(60, 99)
+        val top = lastTopApp.ifBlank { getString(R.string.app_name) }
+        val body = getString(R.string.weekly_body, lastFiltered, score, top)
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.weekly_title)
+            .setMessage(body)
+            .setPositiveButton(R.string.weekly_share) { _, _ ->
+                val send = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, "$body\n\n—— 来自毛豆通知")
+                }
+                runCatching { startActivity(Intent.createChooser(send, getString(R.string.weekly_share))) }
+            }
+            .setNegativeButton(R.string.action_cancel, null)
+            .show()
     }
 
     private fun scopeMatch(result: String) = when (scope) {

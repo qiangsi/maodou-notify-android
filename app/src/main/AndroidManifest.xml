@@ -112,6 +112,7 @@
         <activity android:name=".ui.RuleEditActivity" android:exported="false" />
         <activity android:name=".ui.NotificationDetailActivity" android:exported="false" />
         <activity android:name=".ui.DiagnosticActivity" android:exported="false" />
+        <activity android:name=".ui.CodeVaultActivity" android:exported="false" />
 
         <!-- 通知监听服务：产品技术底座 -->
         <service

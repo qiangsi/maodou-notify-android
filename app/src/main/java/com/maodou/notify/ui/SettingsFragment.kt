@@ -33,6 +33,7 @@ import com.maodou.notify.util.AppLockPolicy
 import com.maodou.notify.util.LockRecovery
 import com.maodou.notify.util.PinHelper
 import com.maodou.notify.util.ProHelper
+import com.maodou.notify.util.ProSheet
 import com.maodou.notify.util.ThemeHelper
 import com.maodou.notify.util.isListenerEnabled
 import com.maodou.notify.util.openListenerSettings
@@ -71,51 +72,26 @@ class SettingsFragment : Fragment() {
         }
         refreshProStatus()
         binding.cardPro.setOnClickListener {
-            if (ProHelper.isActive(prefs)) {
-                // 已激活：显示状态与权益，不重复激活
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(R.string.pro_card_title)
-                    .setMessage(
-                        ProHelper.statusText(prefs) + "\n\n" +
-                            getString(R.string.pro_dialog_benefits)
-                    )
-                    .setPositiveButton(R.string.action_ok, null)
-                    .show()
-            } else {
-                val input = android.widget.EditText(requireContext()).apply {
-                    hint = getString(R.string.pro_dialog_hint)
-                    inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
-                    setSingleLine(true)
-                    setText(prefs.proCode)
-                }
-                val pad = (16 * resources.displayMetrics.density).toInt()
-                val container = android.widget.FrameLayout(requireContext()).apply {
-                    setPadding(pad, pad / 2, pad, 0)
-                    addView(input, android.widget.FrameLayout.LayoutParams(
-                        android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
-                        android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
-                    ))
-                }
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(R.string.pro_dialog_title)
-                    .setMessage(R.string.pro_dialog_benefits)
-                    .setView(container)
-                    .setPositiveButton(R.string.pro_activate) { _, _ ->
-                        val info = ProHelper.verify(input.text.toString())
-                        if (info.valid) {
-                            prefs.proActivated = true
-                            prefs.proForever = info.forever
-                            prefs.proExpireAt = info.expireAt
-                            prefs.proCode = input.text.toString().trim()
-                            refreshProStatus()
-                            Toast.makeText(requireContext(), R.string.pro_activate_ok, Toast.LENGTH_SHORT).show()
-                        } else {
-                            Toast.makeText(requireContext(), R.string.pro_activate_fail, Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                    .setNegativeButton(R.string.action_cancel, null)
-                    .show()
+            // v1.6.0：统一走 ProSheet，激活成功后刷新状态文案
+            ProSheet.show(requireContext(), prefs) { refreshProStatus() }
+        }
+
+        // —— v1.6.0 重要通知守护（Pro）——
+        fun refreshVipStatus() {
+            binding.tvVipGuardStatus.text = if (prefs.vipGuardEnabled && prefs.vipWords().isNotEmpty())
+                getString(R.string.vip_guard_status_on, prefs.vipWords().size)
+            else getString(R.string.vip_guard_status_off)
+        }
+        refreshVipStatus()
+        binding.rowVipGuard.setOnClickListener {
+            ProSheet.gate(requireContext(), prefs, getString(R.string.pro_feature_vip_guard)) {
+                showVipGuardDialog(prefs, ::refreshVipStatus)
             }
+        }
+
+        // —— v1.6.0 验证码保险箱：不锁门，免费可看最近 3 个，翻全部历史时才解锁（先体验后付费）——
+        binding.rowCodeVault.setOnClickListener {
+            startActivity(Intent(requireContext(), CodeVaultActivity::class.java))
         }
 
         fun refreshPermission() {
@@ -260,8 +236,14 @@ class SettingsFragment : Fragment() {
                 .setItems(ranges) { _, which ->
                     val selection = if (isPro) which else which + 1
                     if (which == 2 && !isPro) {
-                        Toast.makeText(requireContext(), R.string.pro_free_locked, Toast.LENGTH_LONG).show()
-                        binding.cardPro.performClick()
+                        // v1.6.0：激活成功后立即兑现「导出全部」，不再让用户自己再点一次
+                        ProSheet.gate(
+                            requireContext(), prefs,
+                            getString(R.string.pro_feature_export_all)
+                        ) {
+                            exportDays = 0
+                            exportLauncher.launch("毛豆通知_${System.currentTimeMillis()}.csv")
+                        }
                         return@setItems
                     }
                     exportDays = when (selection) { 1 -> 7; 2 -> 30; else -> 0 }
@@ -712,6 +694,46 @@ class SettingsFragment : Fragment() {
         }
         dialog.setOnCancelListener { onCancel() }
         dialog.show()
+    }
+
+    /** v1.6.0 重要通知守护配置：守护词 + 启用开关。仅 Pro 可进入（由 ProSheet.gate 保证）。 */
+    private fun showVipGuardDialog(prefs: com.maodou.notify.util.Prefs, onSaved: () -> Unit) {
+        val ctx = requireContext()
+        val d = resources.displayMetrics.density
+        fun dp(v: Int) = (v * d).toInt()
+        val box = android.widget.LinearLayout(ctx).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(dp(20), dp(8), dp(20), 0)
+        }
+        val input = EditText(ctx).apply {
+            hint = getString(R.string.vip_guard_hint)
+            setText(prefs.vipGuardWords)
+            inputType = InputType.TYPE_CLASS_TEXT
+            setSingleLine(false)
+            maxLines = 3
+        }
+        box.addView(input, android.widget.LinearLayout.LayoutParams(
+            android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+        ))
+        val sw = com.google.android.material.materialswitch.MaterialSwitch(ctx).apply {
+            text = getString(R.string.vip_guard_enable)
+            isChecked = prefs.vipGuardEnabled
+            setPadding(0, dp(12), 0, 0)
+        }
+        box.addView(sw)
+        MaterialAlertDialogBuilder(ctx)
+            .setTitle(R.string.vip_guard_dialog_title)
+            .setMessage(R.string.vip_guard_dialog_msg)
+            .setView(box)
+            .setPositiveButton(R.string.action_ok) { _, _ ->
+                prefs.vipGuardWords = input.text.toString().trim()
+                prefs.vipGuardEnabled = sw.isChecked
+                onSaved()
+                Toast.makeText(ctx, R.string.vip_guard_saved, Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton(R.string.action_cancel, null)
+            .show()
     }
 
     override fun onDestroyView() {

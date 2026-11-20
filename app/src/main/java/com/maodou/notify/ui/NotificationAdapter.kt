@@ -129,7 +129,8 @@ class NotificationAdapter(
             }
             byDay.forEach { (k, entries) ->
                 result += TimelineItem.Header(dayLabel.format(Date(entries.first().timestamp)), k)
-                entries.sortedBy { it.timestamp }.forEach { result += TimelineItem.Entry(it) }
+                // v1.6.0：组内也按时间倒序，最新的通知排在最上面（整页彻底倒叙）
+                entries.sortedByDescending { it.timestamp }.forEach { result += TimelineItem.Entry(it) }
             }
         }
         items = result

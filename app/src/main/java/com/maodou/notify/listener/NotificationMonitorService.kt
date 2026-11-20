@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import com.maodou.notify.MaodouApp
+import com.maodou.notify.R
 import com.maodou.notify.data.Actions
 import com.maodou.notify.data.CryptoHelper
 import com.maodou.notify.data.FilterRule
@@ -243,6 +244,20 @@ class NotificationMonitorService : NotificationListenerService() {
 
             // FR-H1 滚动清理：最旧优先
             try { performRollingCleanup(app, dao.countAll()) } catch (e: Exception) { }
+
+            // v1.6.0 重要通知守护（Pro）：命中守护词的通知强制保留，
+            // 跳过规则匹配、AI 打分、智能静音等一切可能误杀的环节。
+            // 这是拦截类 App 最大的焦虑点（怕漏重要通知），放在所有过滤之前优先级最高。
+            if (ProHelper.isActive(app.prefs) && app.prefs.vipGuardEnabled) {
+                val words = app.prefs.vipWords()
+                if (words.isNotEmpty()) {
+                    val haystack = "$appName $finalTitle $finalText"
+                    if (words.any { haystack.contains(it, ignoreCase = true) }) {
+                        dao.update(saved.copy(result = Result.KEPT, filterReason = applicationContext.getString(R.string.vip_reason)))
+                        return@launch
+                    }
+                }
+            }
 
             if (excludedNoFilter) return@launch // 排除档位2：记录不过滤
 

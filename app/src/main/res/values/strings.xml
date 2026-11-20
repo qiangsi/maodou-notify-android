@@ -120,7 +120,7 @@
     <string name="settings_clear_confirm">确定清空全部通知历史和 AI 标注？此操作不可恢复。</string>
     <string name="settings_cleared">已清空</string>
     <string name="settings_about">关于</string>
-    <string name="settings_version">版本 1.5.0 · 数据仅存本机</string>
+    <string name="settings_version">版本 1.6.0 · 数据仅存本机</string>
     <string name="export_done">已导出到文档目录</string>
     <string name="export_failed">导出失败</string>
 
@@ -241,18 +241,64 @@
     <string name="launcher_icon_dialog_title">选择桌面图标</string>
     <string name="launcher_icon_hint">切换后桌面图标会变化，部分桌面需等几秒或重启桌面才刷新。</string>
 
-    <!-- v1.5.0 Pro 买断 -->
+    <!-- v1.5.0 Pro 买断 / v1.6.0 权益重做：从「事后查看」改为「实时守护·高频·爽感」 -->
     <string name="pro_card_title">毛豆通知 Pro</string>
-    <string name="pro_card_subtitle">导出全部 · 无限历史 · 深度统计</string>
+    <string name="pro_card_subtitle">重要守护 · 验证码保险箱 · 清净周报</string>
     <string name="pro_status_free">免费版 · 点此了解 Pro</string>
-    <string name="pro_dialog_title">激活 Pro</string>
+    <string name="pro_dialog_title">解锁 Pro</string>
     <string name="pro_dialog_hint">输入激活码（MD1-开头）</string>
-    <string name="pro_dialog_benefits">Pro 权益：\n· CSV 可导出全部历史（免费版限近 7 / 30 天）\n· 无限历史保留（免费版 30 天 / 5000 条）\n· 深度统计：解锁近 30 天窗口\n\n周卡 ¥1（7 天）· 永久 ¥18 买断\n付款后向开发者获取激活码，输入下方即可解锁。</string>
+    <string name="pro_dialog_benefits">Pro 权益：\n· 重要通知守护：白名单绝不误杀，可二次强提醒\n· 验证码保险箱：所有码自动归档，划掉也能找回\n· 清净周报：战绩卡一键生成、可分享\n· 另含：导出全部历史 / 无限历史保留 / 30 天统计\n\n周卡 ¥1（7 天）· 永久 ¥18 一次买断\n付款后向开发者获取激活码，输入下方即可解锁。</string>
     <string name="pro_activate">激活</string>
     <string name="pro_activate_ok">激活成功，Pro 已解锁</string>
     <string name="pro_activate_fail">激活码无效，请核对后重试</string>
     <string name="pro_deactivate">已激活 Pro，点此可查看状态</string>
     <string name="pro_free_locked">此功能需 Pro，点此解锁</string>
+
+    <!-- v1.6.0 统一解锁面板 ProSheet -->
+    <string name="pro_sheet_title">解锁 Pro · 一次买断</string>
+    <string name="pro_sheet_hook">「%1$s」是 Pro 功能</string>
+    <string name="pro_sheet_hook_sub">解锁后立即为你打开，永久可用</string>
+    <string name="pro_sheet_benefits">· 重要通知守护　白名单绝不误杀，可二次强提醒\n· 验证码保险箱　所有码自动归档，划掉也能找回\n· 清净周报　战绩卡一键生成，可分享\n· 另含　导出全部历史 / 无限历史 / 30 天统计</string>
+    <string name="pro_sheet_price">周卡 ¥1（7 天）　·　永久 ¥18（一次买断）</string>
+    <string name="pro_sheet_how">付款后向开发者索取激活码，粘贴到下方即可解锁</string>
+    <string name="pro_sheet_activate">立即激活</string>
+    <string name="pro_sheet_status">当前：%1$s</string>
+    <string name="pro_feature_stats_30d">近 30 天深度统计</string>
+    <string name="pro_feature_export_all">导出全部历史</string>
+    <string name="pro_feature_vip_guard">重要通知守护</string>
+    <string name="pro_feature_code_vault">验证码保险箱</string>
+    <string name="pro_feature_weekly">清净周报</string>
+
+    <!-- v1.6.0 重要通知守护 -->
+    <string name="vip_guard_title">重要通知守护</string>
+    <string name="vip_guard_desc">命中的通知绝不误杀，强制保留、跳过一切过滤</string>
+    <string name="vip_guard_dialog_title">设置重要守护词</string>
+    <string name="vip_guard_dialog_msg">用逗号分隔，匹配标题 / 正文 / 应用名。命中即强制保留，AI 与规则都不会消除它。例如：老板,老婆,快递,验证码,银行</string>
+    <string name="vip_guard_hint">老板,家人,验证码,快递</string>
+    <string name="vip_guard_saved">守护词已保存，之后命中通知会强制保留</string>
+    <string name="vip_guard_enable">启用重要通知守护</string>
+    <string name="vip_guard_status_on">守护中 · %1$d 个词</string>
+    <string name="vip_guard_status_off">未开启</string>
+    <string name="vip_reason">重要守护 · 强制保留</string>
+
+    <!-- v1.6.0 验证码保险箱 -->
+    <string name="code_vault_title">验证码保险箱</string>
+    <string name="code_vault_desc">所有验证码 / 取件码自动归档，划掉也能找回</string>
+    <string name="code_vault_empty">还没有捕获到验证码。收到含验证码的通知后，会自动出现在这里。</string>
+    <string name="code_vault_locked_hint">还有 %1$d 个历史验证码，解锁 Pro 查看全部</string>
+    <string name="code_vault_expired">已过期</string>
+    <string name="code_vault_valid">有效</string>
+    <string name="code_vault_min_left">剩 %1$d 分钟</string>
+    <string name="code_vault_copy">复制</string>
+    <string name="code_vault_copied">已复制到剪贴板</string>
+    <string name="code_vault_free_limit">免费版仅显示最近 3 个</string>
+
+    <!-- v1.6.0 清净周报 -->
+    <string name="weekly_title">本周清净周报</string>
+    <string name="weekly_btn">生成清净周报</string>
+    <string name="weekly_share">分享战绩</string>
+    <string name="weekly_body">本周毛豆通知为你挡下 %1$d 条骚扰，清净指数 %2$d 分。最吵的是「%3$s」。清净，是一种可以量化的自由。</string>
+    <string name="weekly_empty">数据还不够，多用几天再生成周报吧</string>
     <!-- FR-E4 桌面小部件 / 暂停过滤 -->
     <string name="settings_filter_paused">暂停过滤</string>
     <string name="settings_filter_paused_desc">开启后仅记录通知，不执行任何规则与 AI 过滤，桌面小部件可快捷切换</string>

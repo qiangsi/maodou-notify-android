@@ -200,6 +200,20 @@ class Prefs(context: Context) {
         get() = sp.getString(KEY_PRO_CODE, "") ?: ""
         set(value) = sp.edit().putString(KEY_PRO_CODE, value).apply()
 
+    // —— v1.6.0 重要通知守护（Pro）——
+    var vipGuardEnabled: Boolean
+        get() = sp.getBoolean(KEY_VIP_GUARD_ENABLED, false)
+        set(value) = sp.edit().putBoolean(KEY_VIP_GUARD_ENABLED, value).apply()
+
+    /** 逗号分隔的守护词，匹配标题/正文/应用名 */
+    var vipGuardWords: String
+        get() = sp.getString(KEY_VIP_GUARD_WORDS, "") ?: ""
+        set(value) = sp.edit().putString(KEY_VIP_GUARD_WORDS, value).apply()
+
+    /** 解析后的守护词列表（去空白） */
+    fun vipWords(): List<String> =
+        vipGuardWords.split(",", "，").map { it.trim() }.filter { it.isNotEmpty() }
+
     // —— FR-E4 桌面小部件：全局暂停过滤 ——
     /** 暂停期间只记录不执行任何过滤/动作 */
     var filterPaused: Boolean
@@ -308,5 +322,7 @@ class Prefs(context: Context) {
         private const val KEY_PROBE_LAST_PKG = "probe_last_pkg"
         private const val KEY_PROBE_LAST_AT = "probe_last_at"
         private const val KEY_PROBE_LOG = "probe_log"
+        private const val KEY_VIP_GUARD_ENABLED = "vip_guard_enabled"
+        private const val KEY_VIP_GUARD_WORDS = "vip_guard_words"
     }
 }

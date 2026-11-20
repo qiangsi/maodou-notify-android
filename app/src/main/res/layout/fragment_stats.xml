@@ -190,6 +190,51 @@
                 android:text="@string/stats_scope_filtered" />
         </com.google.android.material.chip.ChipGroup>
 
+        <!-- v1.6.0 清净周报（Pro）：战绩卡 + 一键分享 -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            style="@style/Widget.Maodou.Card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/weekly_title"
+                        android:textAppearance="@style/TextAppearance.Maodou.CardTitle" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/pro_feature_weekly"
+                        android:textAppearance="@style/TextAppearance.Maodou.Caption" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_weekly"
+                    style="@style/Widget.Maodou.TonalButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="0dp"
+                    android:text="@string/weekly_btn"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- 每日趋势（FR-S2） -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"

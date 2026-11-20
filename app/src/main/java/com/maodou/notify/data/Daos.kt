@@ -66,6 +66,13 @@ interface NotificationDao {
     @Query("SELECT * FROM notifications ORDER BY timestamp DESC LIMIT :limit")
     suspend fun recent(limit: Int): List<NotificationEntity>
 
+    /** v1.6.0 验证码保险箱：取所有验证码/取件码类通知，倒序 */
+    @Query("SELECT * FROM notifications WHERE category = 'code' ORDER BY timestamp DESC LIMIT :limit")
+    suspend fun codeVault(limit: Int): List<NotificationEntity>
+
+    @Query("SELECT COUNT(*) FROM notifications WHERE category = 'code'")
+    suspend fun codeVaultCount(): Int
+
     /** 按时间范围+App 筛选导出（FR-H6） */
     @Query("SELECT * FROM notifications WHERE timestamp >= :from AND timestamp <= :to AND (:pkg = '' OR packageName = :pkg) ORDER BY timestamp DESC")
     suspend fun queryForExport(from: Long, to: Long, pkg: String): List<NotificationEntity>
