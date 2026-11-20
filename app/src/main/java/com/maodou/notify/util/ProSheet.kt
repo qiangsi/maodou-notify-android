@@ -1,12 +1,18 @@
 package com.maodou.notify.util
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.DialogInterface
+import android.content.Intent
 import android.graphics.Typeface
+import android.net.Uri
 import android.text.InputType
 import android.util.TypedValue
+import android.view.Gravity
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -80,6 +86,16 @@ object ProSheet {
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
             setTextColor(textSub)
         })
+        // v1.6.2：补齐「付款 -> 拿码」闭环。过去只写「向开发者索取」，
+        // 用户在这一步没有任何可执行入口，转化直接断掉。
+        root.addView(TextView(context).apply {
+            text = context.getString(R.string.pro_sheet_no_code)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+            setTextColor(primary)
+            setTypeface(typeface, Typeface.BOLD)
+            setPadding(0, dp(8), 0, dp(2))
+            setOnClickListener { showBuy(context) }
+        })
         val input = EditText(context).apply {
             hint = context.getString(R.string.pro_dialog_hint)
             // v1.6.1：激活码内含区分大小写的 Base64URL，不能再强制键盘大写
@@ -133,5 +149,106 @@ object ProSheet {
             )
             .setPositiveButton(R.string.action_ok, null)
             .show()
+    }
+
+    /**
+     * v1.6.2 获取激活码引导页：把「付款 -> 拿码」补成可执行的闭环。
+     *
+     * 收款码做成动态资源检测：把图片放到 res/drawable/pay_qrcode.png 即自动展示，
+     * 无需改代码；资源不存在时也能正常编译运行，改为显示文字引导 + 联系入口。
+     */
+    fun showBuy(context: Context) {
+        val d = context.resources.displayMetrics.density
+        fun dp(v: Int) = (v * d).toInt()
+        val primary = ThemeHelper.resolveColor(context, androidx.appcompat.R.attr.colorPrimary, R.color.primary)
+        val textMain = ThemeHelper.resolveColor(context, android.R.attr.textColorPrimary, R.color.text_primary)
+        val textSub = ThemeHelper.resolveColor(context, android.R.attr.textColorSecondary, R.color.text_secondary)
+
+        val root = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(10), dp(22), dp(4))
+        }
+        root.addView(TextView(context).apply {
+            text = context.getString(R.string.pro_buy_price)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            setTextColor(primary)
+            setTypeface(typeface, Typeface.BOLD)
+        })
+        root.addView(TextView(context).apply {
+            text = context.getString(R.string.pro_buy_steps)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+            setTextColor(textMain)
+            setLineSpacing(dp(5).toFloat(), 1f)
+            setPadding(0, dp(12), 0, dp(4))
+        })
+
+        val qrId = context.resources.getIdentifier("pay_qrcode", "drawable", context.packageName)
+        if (qrId != 0) {
+            root.addView(TextView(context).apply {
+                text = context.getString(R.string.pro_buy_qr_hint)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+                setTextColor(textSub)
+                gravity = Gravity.CENTER_HORIZONTAL
+                setPadding(0, dp(10), 0, dp(2))
+            })
+            val qr = ImageView(context).apply {
+                setImageResource(qrId)
+                adjustViewBounds = true
+                scaleType = ImageView.ScaleType.FIT_CENTER
+                contentDescription = context.getString(R.string.pro_buy_qr_hint)
+                setOnClickListener { showQrZoom(context, qrId) }
+            }
+            root.addView(
+                qr,
+                LinearLayout.LayoutParams(dp(210), LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+                    gravity = Gravity.CENTER_HORIZONTAL
+                    topMargin = dp(6)
+                }
+            )
+        } else {
+            root.addView(TextView(context).apply {
+                text = context.getString(R.string.pro_buy_qr_missing)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 12.5f)
+                setTextColor(textSub)
+                setPadding(0, dp(12), 0, dp(4))
+            })
+        }
+
+        val scroll = ScrollView(context).apply { addView(root) }
+        MaterialAlertDialogBuilder(context)
+            .setTitle(R.string.pro_buy_title)
+            .setView(scroll)
+            .setNeutralButton(R.string.pro_buy_contact) { _, _ -> openContact(context) }
+            .setPositiveButton(R.string.pro_buy_back, null)
+            .show()
+    }
+
+    /** 点按收款码放大，方便截图扫码（不请求存储权限、不写文件）。 */
+    private fun showQrZoom(context: Context, qrId: Int) {
+        val iv = ImageView(context).apply {
+            setImageResource(qrId)
+            adjustViewBounds = true
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            setPadding(16, 16, 16, 16)
+        }
+        val dialog = MaterialAlertDialogBuilder(context)
+            .setTitle(R.string.pro_buy_qr_zoom)
+            .setView(iv)
+            .setPositiveButton(R.string.action_ok, null)
+            .create()
+        iv.setOnClickListener { dialog.dismiss() }
+        dialog.show()
+    }
+
+    /** 付款凭证 / 索取收款码的统一联系入口（复用设置页「意见反馈」的 Issues 通道）。 */
+    private fun openContact(context: Context) {
+        val url = "https://github.com/qiangsi/maodou-notify-android/issues/new"
+        try {
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(context, R.string.pro_buy_open_fail, Toast.LENGTH_LONG).show()
+        }
     }
 }

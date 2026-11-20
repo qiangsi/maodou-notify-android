@@ -245,10 +245,10 @@
     <!-- v1.5.0 Pro 买断 / v1.6.0 权益重做：从「事后查看」改为「实时守护·高频·爽感」 -->
     <string name="pro_card_title">毛豆通知 Pro</string>
     <string name="pro_card_subtitle">重要守护 · 验证码保险箱 · 清净周报</string>
-    <string name="pro_status_free">免费版 · 点此了解 Pro</string>
+    <string name="pro_status_free">免费版 · 点此查看 Pro 与获取激活码</string>
     <string name="pro_dialog_title">解锁 Pro</string>
     <string name="pro_dialog_hint">输入激活码（MD1- 开头，区分大小写）</string>
-    <string name="pro_dialog_benefits">Pro 权益：\n· 重要通知守护：白名单绝不误杀，可二次强提醒\n· 验证码保险箱：所有码自动归档，划掉也能找回\n· 清净周报：战绩卡一键生成、可分享\n· 另含：导出全部历史 / 无限历史保留 / 30 天统计\n\n周卡 ¥1（7 天）· 永久 ¥18 一次买断\n付款后向开发者获取激活码，输入下方即可解锁。</string>
+    <string name="pro_dialog_benefits">Pro 权益：\n· 重要通知守护：白名单绝不误杀，可二次强提醒\n· 验证码保险箱：所有码自动归档，划掉也能找回\n· 清净周报：战绩卡一键生成、可分享\n· 另含：导出全部历史 / 无限历史保留 / 30 天统计\n\n周卡 ¥1（7 天）· 永久 ¥18 一次买断\n点「获取激活码」查看付款方式，拿到码后输入下方即可解锁。</string>
     <string name="pro_activate">激活</string>
     <string name="pro_activate_ok">激活成功，Pro 已解锁</string>
     <string name="pro_activate_fail">激活码无效，请核对后重试</string>
@@ -261,7 +261,8 @@
     <string name="pro_sheet_hook_sub">解锁后立即为你打开，永久可用</string>
     <string name="pro_sheet_benefits">· 重要通知守护　白名单绝不误杀，可二次强提醒\n· 验证码保险箱　所有码自动归档，划掉也能找回\n· 清净周报　战绩卡一键生成，可分享\n· 另含　导出全部历史 / 无限历史 / 30 天统计</string>
     <string name="pro_sheet_price">周卡 ¥1（7 天）　·　永久 ¥18（一次买断）</string>
-    <string name="pro_sheet_how">付款后向开发者索取激活码，粘贴到下方即可解锁</string>
+    <string name="pro_sheet_how">已有激活码直接粘贴到下方；还没有码请点下方链接查看获取方式</string>
+    <string name="pro_sheet_no_code">还没有激活码？点此查看获取方式 →</string>
     <string name="pro_sheet_activate">立即激活</string>
     <string name="pro_sheet_status">当前：%1$s</string>
     <string name="pro_feature_stats_30d">近 30 天深度统计</string>
@@ -269,6 +270,17 @@
     <string name="pro_feature_vip_guard">重要通知守护</string>
     <string name="pro_feature_code_vault">验证码保险箱</string>
     <string name="pro_feature_weekly">清净周报</string>
+
+    <!-- v1.6.2 购买引导：把「付款后向开发者索取」这句死胡同补成可执行闭环 -->
+    <string name="pro_buy_title">获取 Pro 激活码</string>
+    <string name="pro_buy_price">周卡 ¥1（7 天）　·　永久 ¥18（一次买断）</string>
+    <string name="pro_buy_steps">① 用微信 / 支付宝扫下方收款码付款，金额对应所选套餐\n② 付款后点「联系开发者」，附上付款截图并注明周卡或永久\n③ 收到 MD1- 开头的激活码后，回到解锁面板粘贴即可\n\n码不记名、可转赠；离线校验，不联网、不需要账号。</string>
+    <string name="pro_buy_qr_hint">收款码 · 点按放大后截图扫码</string>
+    <string name="pro_buy_qr_missing">收款码图片尚未放进应用，请先点「联系开发者」留言索取付款方式，我会把收款码与激活码一起发给你</string>
+    <string name="pro_buy_qr_zoom">收款码（再次点按关闭）</string>
+    <string name="pro_buy_contact">联系开发者</string>
+    <string name="pro_buy_back">返回输入激活码</string>
+    <string name="pro_buy_open_fail">无法打开浏览器，请手动访问 github.com/qiangsi/maodou-notify-android/issues</string>
 
     <!-- v1.6.0 重要通知守护 -->
     <string name="vip_guard_title">重要通知守护</string>
