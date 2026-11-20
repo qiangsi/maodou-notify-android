@@ -15,11 +15,21 @@ package com.maodou.notify.util
  */
 object AppLockPolicy {
 
+    /**
+     * 进程内「强制下次进入必须验证」标记。
+     * 验证失败/取消后立即置位；它优先于离开时长宽限期，且不会被随后的
+     * markBackground 用新的离开时刻覆盖——否则用户失败后立刻返回会落在
+     * 宽限期内被直接放行。进程重启后该标记丢失，但 forceLock 已写入足够早的
+     * lastBackgroundAt，needsVerification 仍成立，不会因此失守。
+     */
+    private var forceLocked = false
+
     /** 退到后台或锁屏时调用，标记一次「待验证的离开」。 */
     fun markBackground(prefs: Prefs, now: Long = System.currentTimeMillis()) {
-        if (prefs.appLockEnabled) {
-            prefs.lastBackgroundAt = now
-        }
+        if (!prefs.appLockEnabled) return
+        // 已强制锁定时保留更早的离开时刻，避免宽限期重新生效
+        if (forceLocked) return
+        prefs.lastBackgroundAt = now
     }
 
     /**
@@ -28,6 +38,7 @@ object AppLockPolicy {
      */
     fun needsVerification(prefs: Prefs, now: Long = System.currentTimeMillis()): Boolean {
         if (!prefs.appLockEnabled) return false
+        if (forceLocked) return true
         val leftAt = prefs.lastBackgroundAt
         if (leftAt <= 0L) return false
         val awayMs = (now - leftAt).coerceAtLeast(0L)
@@ -36,20 +47,22 @@ object AppLockPolicy {
 
     /** 验证成功：清除离开记录并刷新解锁时刻。 */
     fun markVerified(prefs: Prefs, now: Long = System.currentTimeMillis()) {
+        forceLocked = false
         prefs.lastBackgroundAt = 0L
         prefs.lastUnlockAt = now
     }
 
     /**
-     * 「立即锁定」：把离开时刻回拨一个阈值，使 needsVerification 立即成立。
-     * 不新增字段即可表达「强制下次进入验证」，与离开时长配置解耦。
+     * 「立即锁定」/「验证失败」：强制下次进入必须验证，与离开时长配置解耦。
      */
     fun forceLock(prefs: Prefs, now: Long = System.currentTimeMillis()) {
+        forceLocked = true
         prefs.lastBackgroundAt = now - prefs.appLockAwayMs.coerceAtLeast(0L)
     }
 
     /** 关闭应用锁 / 重置：清除待验证状态。 */
     fun clear(prefs: Prefs) {
+        forceLocked = false
         prefs.lastBackgroundAt = 0L
     }
 }

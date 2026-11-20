@@ -50,7 +50,23 @@ object AppLockGuard {
 
     fun onActivityStopped() {
         // 所有页面都停下来才算真正退到后台；页面间跳转时 resumedCount 仍为 1
-        if (resumedCount == 0) onLeaveApp()
+        if (resumedCount == 0) {
+            if (prompting) {
+                // 弹窗还没结论就离开：这是「未完成验证」的离开，
+                // 不能当普通退后台享受宽限期，下次进入必须重新验证
+                try {
+                    AppLockPolicy.forceLock(MaodouApp.instance.prefs)
+                } catch (e: Exception) {
+                    // Application 尚未初始化完成，忽略
+                }
+            } else {
+                onLeaveApp()
+            }
+            // 兜底：页面全部停止时验证弹窗已不可能有效，清除防重入标志。
+            // 否则弹窗被系统/Activity 重建销毁而没有回调时，prompting 会永久卡 true，
+            // 之后所有验证请求都被 maybePrompt 的 if (prompting) return 吞掉。
+            prompting = false
+        }
     }
 
     /** 离开应用：记录离开时刻，供策略按配置时长判定 */
@@ -94,6 +110,9 @@ object AppLockGuard {
             },
             onFail = {
                 prompting = false
+                // 失败/取消后立即置为「下次进入必须验证」，不能只靠 moveTaskToBack
+                // 的 onStop 间接记录离开——那样会受离开时长宽限期影响而放行。
+                AppLockPolicy.forceLock(prefs)
                 // 不 finish 主页，否则任务栈会被销毁；退回后台即可，回来会再次要求验证
                 try {
                     activity.moveTaskToBack(true)

@@ -76,6 +76,9 @@ object AppLockHelper {
     ) {
         val input = pinField(activity, R.string.app_lock_pin_verify_title)
         var dialogRef: android.app.Dialog? = null
+        // 弹窗是否已给出结论（验证成功 / 转入其他验证流程）。
+        // false 时任何途径的关闭都算「验证未完成」，必须走 onFail 重新上锁。
+        var settled = false
         // 用一个垂直容器放输入框 + 两个次级入口，避免占用对话框三个按钮位
         val extras = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
         val canBiometric = isBiometricCapable(activity)
@@ -87,6 +90,7 @@ object AppLockHelper {
                 setPadding(0, 12, 0, 0)
                 setOnClickListener {
                     // 由调用方在对话框外重新发起生物识别；此处先关闭当前对话框
+                    settled = true
                     dialogRef?.dismiss()
                     promptBiometric(activity, prefs, onSuccess, onFail)
                 }
@@ -100,6 +104,7 @@ object AppLockHelper {
                 textSize = 13f
                 setPadding(0, 12, 0, 0)
                 setOnClickListener {
+                    settled = true
                     dialogRef?.dismiss()
                     showRecovery(activity, prefs, onSuccess, onFail)
                 }
@@ -119,12 +124,16 @@ object AppLockHelper {
             .setNegativeButton(R.string.action_cancel, null)
             .create()
         dialogRef = dialog
+        // 任何途径关闭弹窗（取消按钮、返回键、系统销毁、Activity 重建）都算验证未完成，
+        // 统一走 onFail 重新上锁，杜绝用户停留在已解锁的界面。
+        dialog.setOnDismissListener { if (!settled) onFail() }
         dialog.setOnShowListener {
             dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 when {
                     input.text.toString().trim().isEmpty() ->
                         input.error = activity.getString(R.string.app_lock_pin_empty)
                     PinHelper.verify(prefs, input.text.toString().trim()) -> {
+                        settled = true
                         dialog.dismiss()
                         onSuccess()
                     }
@@ -135,7 +144,6 @@ object AppLockHelper {
                 }
             }
         }
-        dialog.setOnCancelListener { onFail() }
         dialog.show()
     }
 
