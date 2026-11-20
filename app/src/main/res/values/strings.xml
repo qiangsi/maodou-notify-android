@@ -130,6 +130,7 @@
     <string name="guide_desc">毛豆通知需要「通知使用权」才能保存和管理通知。这是系统级权限，所有处理都在你的手机本地完成。</string>
     <string name="guide_button">前往系统设置开启</string>
     <string name="guide_later">稍后再说</string>
+    <string name="guide_listener_hint">通知已允许。要读取并保存通知，还需在「设置 → 通知使用权」中开启。</string>
 
     <!-- 5 秒撤销 -->
     <string name="undo_notification_title">通知已消除</string>

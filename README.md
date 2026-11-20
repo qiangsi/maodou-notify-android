@@ -3,7 +3,7 @@
 依据 PRD《毛豆通知 v0.1》实现的 Android 原生通知管家：**把每条通知存进可搜索的本地历史，用离线 AI 挡骚扰，其余交给自定义规则**。
 
 - **技术栈**：Kotlin + Jetpack Room + Material 3 + 协程 + ViewBinding
-- **版本**：**v1.6.4**（versionCode 17）· 修复应用锁绕过漏洞 · 最低 Android 8.0（API 26），目标 Android 15（API 35）
+- **版本**：**v1.6.5**（versionCode 18）· 修复首次安装授权后引导弹窗不消失 · 最低 Android 8.0（API 26），目标 Android 15（API 35）
 - **隐私**：通知内容 AES-256-GCM 加密存本地（密钥在 Android Keystore），零上传；唯一外发通道是用户显式配置的 Webhook
 - **构建**：JDK 17 + Gradle 8.14 + Android SDK 35，`gradle assembleRelease` 已真实编译通过（BUILD SUCCESSFUL）
 - **开源说明**：本项目自 v1.6.1 起采用 **open-core** 模式——功能代码开源，**离线 Pro 授权内核与签发密钥不开源**。公开仓库中的 `ProHelper.kt` 为社区占位实现（校验恒不通过），因此 clone 编译出的是完整免费版，但无法激活 Pro；需要 Pro 请使用官方发布包并向开发者索取激活码。授权密钥在官方构建时由本机私有配置注入，不进入版本库。
@@ -22,6 +22,12 @@
 - **弹窗**：统一走 `ThemeOverlay.Maodou.Dialog`，表面色与页面一致，单选点为主色，不再出现 Material 默认的偏色底。
 
 ## 更新记录
+
+### v1.6.5 · 修复首次安装授权后引导弹窗不消失（2026-11-20）
+- **问题**：新用户首次安装打开，在系统通知权限弹窗同意并返回后，App 自带的「开启通知使用权」引导弹窗仍然停留在页面上。
+- **根因**：`MainActivity` 的引导框 `show()` 后不保存引用、全类没有 `dismiss()` 路径；`onCreate` 与 `onResume` 会连续弹两个框，`onRequestPermissionsResult()` 是空实现，打开系统设置也没有返回回调。于是即使权限已授予，也没有任何代码去关旧弹窗。
+- **修复**：权限弹窗改为单例引用；`onCreate` / `onResume` / 授权结果 / 设置页返回统一走 `syncPermissionState()`——已授权必定关闭旧弹窗并重绑服务，未授权则保持唯一弹窗不叠加；通知使用权设置改用带返回的启动方式并延迟复核，兼容部分 ROM 写入延迟；系统「通知」弹窗同意但通知使用权仍未开时，关闭模态引导改用非阻塞提示。
+- versionCode 18，沿用 debug.keystore 可覆盖安装，数据不丢。
 
 ### v1.6.4 · 修复应用锁绕过漏洞（2026-11-20）
 - **漏洞**：输入密码/指纹验证失败或取消后退出，再次进入 App 可无需验证直接访问。
