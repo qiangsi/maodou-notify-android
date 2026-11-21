@@ -9,6 +9,8 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import com.maodou.notify.MaodouApp
 import com.maodou.notify.R
+import com.maodou.notify.achievement.AchievementEvent
+import com.maodou.notify.achievement.EventType
 import com.maodou.notify.data.Actions
 import com.maodou.notify.data.CryptoHelper
 import com.maodou.notify.data.FilterRule
@@ -239,6 +241,7 @@ class NotificationMonitorService : NotificationListenerService() {
             val dao = app.database.notificationDao()
             val id = dao.insert(entity)
             var saved = entity.copy(id = id)
+            emitAchievement(app, id, "record", Result.KEPT, category, pkg)
             // FR-E4：通知落库后主动刷新桌面小部件统计
             try { MaodouWidgetProvider.refreshAll(applicationContext) } catch (e: Exception) { }
 
@@ -267,6 +270,7 @@ class NotificationMonitorService : NotificationListenerService() {
             // 2) 智能静音（FR-E2）
             if (ActionExecutor.shouldSmartMute(applicationContext, pkg, app.prefs)) {
                 dao.update(saved.copy(result = Result.RULE, filterReason = "智能静音"))
+                emitAchievement(app, id, "filter", Result.RULE, category, pkg)
                 return@launch
             }
 
@@ -280,6 +284,7 @@ class NotificationMonitorService : NotificationListenerService() {
                 )
                 if (outcome.applied && outcome.result == Result.RULE) {
                     dao.update(saved.copy(result = outcome.result, filterReason = outcome.reason))
+                    emitAchievement(app, id, "filter", outcome.result, category, pkg)
                     // 5 秒撤销按钮（FR-E1）：消除且开启时
                     if (app.prefs.undoEnabled && match.rule.action == Actions.DISMISS) {
                         NotificationBridge.showUndo(applicationContext, id, finalTitle)
@@ -301,6 +306,7 @@ class NotificationMonitorService : NotificationListenerService() {
                 if (score >= app.prefs.aiThreshold) {
                     try { cancelNotification(sbn.key) } catch (e: Exception) { }
                     dao.update(saved.copy(result = Result.AI, score = score, filterReason = "AI 判定骚扰 $score%"))
+                    emitAchievement(app, id, "filter", Result.AI, category, pkg)
                 } else {
                     dao.update(saved.copy(score = score))
                 }
@@ -312,6 +318,21 @@ class NotificationMonitorService : NotificationListenerService() {
             // 6) AI 闲置/充电学习（FR-A3）：低频触发，避免前台卡顿
             maybeLearn(app)
         }
+    }
+
+    /** 成就事件投递：key 由通知 id + 阶段组成，天然幂等；失败不影响通知主流程。 */
+    private fun emitAchievement(
+        app: MaodouApp, id: Long, phase: String, result: String?, category: String?, pkg: String
+    ) {
+        app.emitAchievement(
+            AchievementEvent(
+                key = "notif:$id:$phase",
+                type = EventType.NOTIFICATION,
+                result = result,
+                category = category,
+                packageName = pkg
+            )
+        )
     }
 
     /** 滚动清理：按保留窗口与条数上限，最旧优先（FR-H1） */

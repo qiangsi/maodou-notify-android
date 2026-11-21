@@ -117,6 +117,9 @@ interface RuleDao {
     @Query("SELECT * FROM rules WHERE id = :id")
     suspend fun getById(id: Long): FilterRule?
 
+    @Query("SELECT COUNT(*) FROM rules")
+    suspend fun countAll(): Int
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(rule: FilterRule): Long
 

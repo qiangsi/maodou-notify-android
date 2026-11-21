@@ -6,6 +6,8 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
 import android.os.Bundle
+import com.maodou.notify.achievement.AchievementEvent
+import com.maodou.notify.achievement.AchievementRepository
 import com.maodou.notify.data.Actions
 import com.maodou.notify.data.AppDatabase
 import com.maodou.notify.data.FilterRule
@@ -26,6 +28,16 @@ class MaodouApp : Application() {
 
     val database: AppDatabase by lazy { AppDatabase.getInstance(this) }
     val prefs: Prefs by lazy { Prefs(this) }
+
+    /** 成就系统统一入口（数据层与事件引擎） */
+    val achievementRepo: AchievementRepository by lazy { AchievementRepository(database, prefs) }
+
+    /** 后台投递成就事件：任何失败都不影响主流程（通知处理/解锁等） */
+    fun emitAchievement(event: AchievementEvent) {
+        appScope.launch {
+            try { achievementRepo.onEvent(event) } catch (e: Exception) { }
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -51,6 +63,14 @@ class MaodouApp : Application() {
 
         // 首次安装种入开箱即用的默认规则：不这样做的话，新用户装上看不到任何拦截效果
         seedDefaultRulesIfNeeded()
+
+        // 成就：写入内置配置并按真实数据校准一次（覆盖老用户升级、事件漏投、数据清理）
+        appScope.launch {
+            try {
+                achievementRepo.seedDefaults()
+                achievementRepo.reconcile()
+            } catch (e: Exception) { }
+        }
     }
 
     /**

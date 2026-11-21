@@ -15,8 +15,8 @@ android {
         applicationId = "com.maodou.notify"
         minSdk = 26
         targetSdk = 35
-        versionCode = 18
-        versionName = "1.6.5"
+        versionCode = 19
+        versionName = "1.7.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

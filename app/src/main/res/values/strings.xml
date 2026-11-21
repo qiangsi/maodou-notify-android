@@ -7,7 +7,27 @@
     <string name="tab_history">历史</string>
     <string name="tab_rules">规则</string>
     <string name="tab_stats">分析</string>
+    <string name="tab_achievements">成就</string>
     <string name="tab_settings">设置</string>
+
+    <!-- 成就系统 -->
+    <string name="achievement_title">成就</string>
+    <string name="achievement_subtitle">记录你与通知相处的每一步 · 全部数据仅存本机</string>
+    <string name="achievement_all">全部</string>
+    <string name="achievement_summary">已解锁 %1$d / %2$d</string>
+    <string name="achievement_filtered">已解锁</string>
+    <string name="achievement_locked">未解锁</string>
+    <string name="achievement_progress_text">%1$d / %2$d</string>
+    <string name="achievement_detail_reward">奖励：%1$s</string>
+    <string name="achievement_detail_no_reward">奖励：无（纯纪念成就）</string>
+    <string name="achievement_detail_condition">解锁条件：%1$s</string>
+    <string name="achievement_claim">领取奖励</string>
+    <string name="achievement_claim_again">已领取</string>
+    <string name="achievement_claim_ok">奖励已记录</string>
+    <string name="achievement_claim_locked">解锁后才能领取</string>
+    <string name="achievement_reward_title">称号</string>
+    <string name="achievement_reward_theme">主题</string>
+    <string name="achievement_reward_prodays">Pro 天数</string>
 
     <!-- 通知渠道 -->
     <string name="channel_restored">恢复的通知</string>

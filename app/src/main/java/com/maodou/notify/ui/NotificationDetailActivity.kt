@@ -74,6 +74,12 @@ class NotificationDetailActivity : AppCompatActivity() {
             app.database.aiFeedbackDao().insert(
                 AiFeedback(packageName = e.packageName, textEnc = e.textEnc, label = label)
             )
+            app.emitAchievement(
+                com.maodou.notify.achievement.AchievementEvent(
+                    key = "learn:${e.id}:${label}",
+                    type = com.maodou.notify.achievement.EventType.LEARNED
+                )
+            )
             withContext(Dispatchers.Main) {
                 Toast.makeText(this@NotificationDetailActivity, R.string.marked_toast, Toast.LENGTH_SHORT).show()
                 entity = app.database.notificationDao().getById(e.id)

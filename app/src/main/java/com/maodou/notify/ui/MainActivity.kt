@@ -21,6 +21,7 @@ import com.maodou.notify.util.ThemeHelper
 import com.maodou.notify.util.hasPostNotificationPermission
 import com.maodou.notify.util.isListenerEnabled
 import com.maodou.notify.util.openListenerSettings
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -70,6 +71,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.nav_rules -> switchFragment(RulesFragment())
                 R.id.nav_stats -> switchFragment(StatsFragment())
+                R.id.nav_achievements -> switchFragment(AchievementsFragment())
                 R.id.nav_settings -> switchFragment(SettingsFragment())
             }
             true
@@ -84,6 +86,18 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(
                 this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQ_POST_NOTIFICATIONS
             )
+        }
+
+        // 成就：按自然日记录打开事件（同一天重复打开由 eventKey 幂等去重），并校准绝对值成就
+        val app = application as MaodouApp
+        val day = java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.getDefault()).format(java.util.Date())
+        app.emitAchievement(
+            com.maodou.notify.achievement.AchievementEvent(
+                "app_open:$day", com.maodou.notify.achievement.EventType.APP_OPENED
+            )
+        )
+        app.appScope.launch {
+            try { app.achievementRepo.reconcile() } catch (e: Exception) { }
         }
     }
 
