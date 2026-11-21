@@ -18,14 +18,15 @@
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
 
-    <!-- v1.7.0 角标：右下角淡绿色、半透明毛豆荚（三粒豆 + 豆荚弧线）。
+    <!-- 角标：右下角淡绿色、半透明小毛豆（两粒豆 + 豆荚弧线）。
+         两粒豆更易识别，与绿底豆芽的小豆通知形成明显区分。
          位置控制在自适应图标中心 66dp 安全区内，避免被不同桌面裁切；
          使用矢量与 alpha 色，任意密度与深浅背景下都轻量清晰。 -->
     <group android:scaleX="0.9" android:scaleY="0.9" android:pivotX="72" android:pivotY="72">
         <!-- 豆荚弧线 -->
         <path
             android:fillColor="@android:color/transparent"
-            android:pathData="M63.5,76c1.5,3.5 4.8,5.6 8.7,5.6 3.8,0 7.1,-2.1 8.6,-5.6"
+            android:pathData="M66.5,74.5c1.4,2.6 4.3,4.2 7.6,4.2 3.1,0 5.9,-1.5 7.5,-3.9"
             android:strokeColor="#8FD9B4"
             android:strokeAlpha="0.72"
             android:strokeWidth="2.6"
@@ -34,16 +35,11 @@
         <path
             android:fillColor="#9FE3C1"
             android:fillAlpha="0.62"
-            android:pathData="M68,71.8c-1.8,0 -3.2,1.4 -3.2,3.2s1.4,3.2 3.2,3.2 3.2,-1.4 3.2,-3.2 -1.4,-3.2 -3.2,-3.2z" />
-        <!-- 中豆 -->
-        <path
-            android:fillColor="#9FE3C1"
-            android:fillAlpha="0.62"
-            android:pathData="M72.2,76.9c-1.8,0 -3.2,1.4 -3.2,3.2s1.4,3.2 3.2,3.2 3.2,-1.4 3.2,-3.2 -1.4,-3.2 -3.2,-3.2z" />
+            android:pathData="M69.9,72.2c-2.2,0 -3.9,1.9 -3.9,4.2s1.7,4.2 3.9,4.2 3.9,-1.9 3.9,-4.2 -1.7,-4.2 -3.9,-4.2z" />
         <!-- 右豆 -->
         <path
             android:fillColor="#9FE3C1"
             android:fillAlpha="0.62"
-            android:pathData="M76.5,71.3c-1.8,0 -3.2,1.4 -3.2,3.2s1.4,3.2 3.2,3.2 3.2,-1.4 3.2,-3.2 -1.4,-3.2 -3.2,-3.2z" />
+            android:pathData="M77.2,71.6c-2.2,0 -3.9,1.9 -3.9,4.2s1.7,4.2 3.9,4.2 3.9,-1.9 3.9,-4.2 -1.7,-4.2 -3.9,-4.2z" />
     </group>
 </vector>

@@ -11,6 +11,7 @@ import com.maodou.notify.achievement.AchievementRepository
 import com.maodou.notify.data.Actions
 import com.maodou.notify.data.AppDatabase
 import com.maodou.notify.data.FilterRule
+import com.maodou.notify.engine.MuteController
 import com.maodou.notify.listener.KeepAliveJobService
 import com.maodou.notify.util.AppLockGuard
 import com.maodou.notify.util.Prefs
@@ -45,6 +46,9 @@ class MaodouApp : Application() {
         // FR-E6：深浅模式全局应用（配色由各 Activity 在 onCreate 前 setTheme）
         ThemeHelper.applyNightMode(prefs.themeMode)
         createChannels()
+
+        // v1.7.1：进程重启后按持久化的到期时刻对齐静音状态，避免内存任务丢失导致永久静音
+        MuteController.recoverIfNeeded(this, prefs)
 
         // FR-E5：全局应用锁（所有页面统一拦截，退后台/锁屏即上锁）
         AppLockGuard.install(this)
