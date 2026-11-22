@@ -15,6 +15,7 @@ import com.maodou.notify.engine.MuteController
 import com.maodou.notify.listener.KeepAliveJobService
 import com.maodou.notify.util.AppLockGuard
 import com.maodou.notify.util.Prefs
+import com.maodou.notify.util.PerfTracer
 import com.maodou.notify.util.ThemeHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,6 +44,8 @@ class MaodouApp : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        // 性能打点：默认关闭；仅在诊断页手动打开过才启用，重启后按持久化状态恢复
+        PerfTracer.enabled = prefs.perfTrace
         // FR-E6：深浅模式全局应用（配色由各 Activity 在 onCreate 前 setTheme）
         ThemeHelper.applyNightMode(prefs.themeMode)
         createChannels()

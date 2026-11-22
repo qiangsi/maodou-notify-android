@@ -55,7 +55,20 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "maodou.db"
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build().also { INSTANCE = it }
+                )
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    // P1 性能：补高频查询索引。用 onOpen + IF NOT EXISTS，不改 @Entity 注解，
+                    // 因此不触发 Room schema 版本校验，已安装用户下次打开即自动建索引。
+                    .addCallback(object : RoomDatabase.Callback() {
+                        override fun onOpen(db: SupportSQLiteDatabase) {
+                            super.onOpen(db)
+                            db.execSQL("CREATE INDEX IF NOT EXISTS idx_notif_result ON notifications(result)")
+                            db.execSQL("CREATE INDEX IF NOT EXISTS idx_notif_category ON notifications(category)")
+                            db.execSQL("CREATE INDEX IF NOT EXISTS idx_notif_marked ON notifications(marked)")
+                            db.execSQL("CREATE INDEX IF NOT EXISTS idx_notif_ts_result ON notifications(timestamp, result)")
+                        }
+                    })
+                    .build().also { INSTANCE = it }
             }
         }
     }

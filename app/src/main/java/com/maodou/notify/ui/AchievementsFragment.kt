@@ -59,6 +59,16 @@ class AchievementsFragment : Fragment(R.layout.fragment_achievements) {
 
     override fun onResume() {
         super.onResume()
+        reconcileOnVisible()
+    }
+
+    /** show/hide 复用模式下切回本页不触发 onResume，需在变为可见时校准成就 */
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) reconcileOnVisible()
+    }
+
+    private fun reconcileOnVisible() {
         // 页面可见时按真实数据校准一次，兜住事件漏投与数据清理
         app.appScope.launch {
             try { app.achievementRepo.reconcile() } catch (e: Exception) { }
